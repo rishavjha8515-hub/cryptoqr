@@ -1,8 +1,7 @@
-cat > backend/requirements.txt << 'EOF'
+
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 python-multipart==0.0.6
 cryptography==41.0.7
 qrcode[pil]==7.4.2
 pillow==10.1.0
-EOF
