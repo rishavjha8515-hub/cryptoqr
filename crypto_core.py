@@ -379,4 +379,5 @@ if __name__ == '__main__':
     print(f"  Reason: {result2.reason}")
     
     print("\n" + "=" * 50)
+
     print("Self-test complete!")
