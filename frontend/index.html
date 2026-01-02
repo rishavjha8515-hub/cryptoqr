@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoQR - Submit</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 48px;
+            max-width: 680px;
+            width: 100%;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            color: #1a202c;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            color: #2d3748;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="datetime-local"] {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px;
+            border: 2px dashed #cbd5e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f7fafc;
+        }
+
+        .file-input-label:hover {
+            border-color: #667eea;
+            background: #edf2f7;
+        }
+
+        .file-input-label.has-file {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .file-info {
+            text-align: center;
+        }
+
+        .file-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .file-text {
+            color: #4a5568;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .file-name {
+            color: #2d3748;
+            font-weight: 600;
+            margin-top: 8px;
+            word-break: break-all;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 32px;
+            color: #4a5568;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            margin-top: 32px;
+            padding: 32px;
+            background: #f0fff4;
+            border: 2px solid #48bb78;
+            border-radius: 12px;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result h3 {
+            color: #22543d;
+            font-size: 20px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .qr-image {
+            max-width: 320px;
+            margin: 24px auto;
+            display: block;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .info-label {
+            color: #718096;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: #2d3748;
+            font-weight: 600;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            text-align: right;
+            max-width: 60%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .button-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .button-secondary:hover {
+            background: #edf2f7;
+        }
+
+        .nav-link {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .nav-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .nav-link a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 32px 24px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🔐</div>
+            <h1>CryptoQR Submission</h1>
+            <p class="subtitle">Generate cryptographically signed QR code for your work</p>
+        </div>
+
+        <form id="submitForm">
+            <div class="form-group">
+                <label>Your Project File *</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="fileInput" required>
+                    <label for="fileInput" class="file-input-label" id="fileLabel">
+                        <div class="file-info">
+                            <div class="file-icon">📁</div>
+                            <div class="file-text">Click to select file or drag and drop</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Competition ID *</label>
+                <input type="text" id="compId" placeholder="e.g., alamedahacks-2026" required>
+            </div>
+
+            <div class="form-group">
+                <label>Submission Deadline *</label>
+                <input type="datetime-local" id="deadline" required>
+            </div>
+
+            <div class="form-group">
+                <label>Email (optional)</label>
+                <input type="email" id="email" placeholder="your@email.com">
+            </div>
+
+            <button type="submit" id="submitBtn">Generate QR Code</button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Generating cryptographic signature...</p>
+        </div>
+
+        <div class="result" id="result">
+            <h3>
+                <span>✅</span>
+                <span>Submission Created</span>
+            </h3>
+            
+            <img id="qrImage" class="qr-image" alt="QR Code">
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Submission ID</span>
+                    <span class="info-value" id="submissionId"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Timestamp</span>
+                    <span class="info-value" id="timestamp"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Content Hash</span>
+                    <span class="info-value" id="contentHash"></span>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="button-secondary" id="downloadQR">Download QR Code</button>
+                <button class="button-secondary" id="downloadData">Download QR Data</button>
+            </div>
+        </div>
+
+        <div class="nav-link">
+            <a href="verify.html">Verify a Submission →</a>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000'; // Change for production
+
+        const form = document.getElementById('submitForm');
+        const fileInput = document.getElementById('fileInput');
+        const fileLabel = document.getElementById('fileLabel');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const submitBtn = document.getElementById('submitBtn');
+
+        let currentQRData = null;
+        let currentQRImage = null;
+
+        // File input handling
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                fileLabel.classList.add('has-file');
+                fileLabel.innerHTML = `
+                    <div class="file-info">
+                        <div class="file-icon">📄</div>
+                        <div class="file-text">File selected:</div>
+                        <div class="file-name">${file.name}</div>
+                    </div>
+                `;
+            }
+        });
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!fileInput.files[0]) {
+                alert('Please select a file');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('competition_id', document.getElementById('compId').value);
+            
+            const deadline = new Date(document.getElementById('deadline').value).toISOString();
+            formData.append('deadline', deadline);
+            
+            const email = document.getElementById('email').value;
+            if (email) formData.append('email', email);
+
+            submitBtn.disabled = true;
+            loading.classList.add('show');
+            result.classList.remove('show');
+
+            try {
+                const response = await fetch(`${API_URL}/api/submit`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.status === 409) {
+                    const error = await response.json();
+                    alert(`⚠️ Duplicate Submission\n\nThis file was already submitted.\n\nSubmission ID: ${error.detail.existing_submission_id}\nTime: ${new Date(error.detail.existing_timestamp).toLocaleString()}`);
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Submission failed');
+                }
+
+                const data = await response.json();
+                displayResult(data);
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                loading.classList.remove('show');
+                submitBtn.disabled = false;
+            }
+        });
+
+        function displayResult(data) {
+            currentQRData = data.qr_data;
+            currentQRImage = data.qr_image_base64;
+
+            document.getElementById('qrImage').src = `data:image/png;base64,${data.qr_image_base64}`;
+            document.getElementById('submissionId').textContent = data.submission_id;
+            document.getElementById('timestamp').textContent = new Date(data.timestamp).toLocaleString();
+            document.getElementById('contentHash').textContent = data.content_hash.substring(0, 16) + '...';
+
+            result.classList.add('show');
+            result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Download QR image
+        document.getElementById('downloadQR').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = `cryptoqr-${currentQRData.payload.submission_id}.png`;
+            link.href = `data:image/png;base64,${currentQRImage}`;
+            link.click();
+        });
+
+        // Download QR data JSON
+        document.getElementById('downloadData').addEventListener('click', () => {
+            const dataStr = JSON.stringify(currentQRData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = `cryptoqr-data-${currentQRData.payload.submission_id}.json`;
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // Set default deadline (7 days from now)
+        const defaultDeadline = new Date();
+        defaultDeadline.setDate(defaultDeadline.getDate() + 7);
+        document.getElementById('deadline').value = defaultDeadline.toISOString().slice(0, 16);
+    </script>
+</body>
+</html>

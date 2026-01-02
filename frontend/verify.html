@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoQR - Verify</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 48px;
+            max-width: 680px;
+            width: 100%;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            color: #1a202c;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .helper {
+            background: #edf2f7;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 32px;
+            font-size: 14px;
+            color: #4a5568;
+            display: flex;
+            align-items: start;
+            gap: 12px;
+        }
+
+        .helper-icon {
+            font-size: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            color: #2d3748;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px;
+            border: 2px dashed #cbd5e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f7fafc;
+        }
+
+        .file-input-label:hover {
+            border-color: #667eea;
+            background: #edf2f7;
+        }
+
+        .file-input-label.has-file {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .file-info {
+            text-align: center;
+        }
+
+        .file-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .file-text {
+            color: #4a5568;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .file-name {
+            color: #2d3748;
+            font-weight: 600;
+            margin-top: 8px;
+            word-break: break-all;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            min-height: 140px;
+            transition: all 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 32px;
+            color: #4a5568;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            margin-top: 32px;
+            padding: 32px;
+            border-radius: 12px;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result.valid {
+            background: #f0fff4;
+            border: 2px solid #48bb78;
+        }
+
+        .result.invalid {
+            background: #fff5f5;
+            border: 2px solid #f56565;
+        }
+
+        .result h3 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .result.valid h3 {
+            color: #22543d;
+        }
+
+        .result.invalid h3 {
+            color: #742a2a;
+        }
+
+        .checks {
+            display: grid;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .check-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .check-label {
+            color: #2d3748;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .check-status {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .check-status.pass {
+            color: #38a169;
+        }
+
+        .check-status.fail {
+            color: #e53e3e;
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .info-label {
+            color: #718096;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: #2d3748;
+            font-weight: 600;
+            font-size: 13px;
+            text-align: right;
+        }
+
+        .reason {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+            color: #742a2a;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .export-btn {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            margin-top: 20px;
+        }
+
+        .export-btn:hover {
+            background: #edf2f7;
+        }
+
+        .nav-link {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .nav-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .nav-link a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 32px 24px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🔍</div>
+            <h1>Verify Submission</h1>
+            <p class="subtitle">Check cryptographic authenticity of a submission</p>
+        </div>
+
+        <div class="helper">
+            <span class="helper-icon">💡</span>
+            <span>Upload the submission file and paste the QR data from the JSON file to verify authenticity</span>
+        </div>
+
+        <form id="verifyForm">
+            <div class="form-group">
+                <label>Submission File *</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="fileInput" required>
+                    <label for="fileInput" class="file-input-label" id="fileLabel">
+                        <div class="file-info">
+                            <div class="file-icon">📁</div>
+                            <div class="file-text">Click to select file to verify</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>QR Data (JSON) *</label>
+                <textarea id="qrData" placeholder='Paste QR JSON data here, for example:
+{
+  "payload": {...},
+  "signature": "...",
+  "version": "1.0.0"
+}' required></textarea>
+            </div>
+
+            <button type="submit" id="verifyBtn">Verify Submission</button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Verifying cryptographic signature...</p>
+        </div>
+
+        <div class="result" id="result">
+            <h3 id="resultTitle"></h3>
+
+            <div class="checks" id="checks"></div>
+
+            <div class="info-grid" id="info"></div>
+
+            <div class="reason" id="reason" style="display: none;"></div>
+
+            <button class="export-btn" id="exportBtn">Export Verification Report</button>
+        </div>
+
+        <div class="nav-link">
+            <a href="index.html">← Create New Submission</a>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000'; // Change for production
+
+        const form = document.getElementById('verifyForm');
+        const fileInput = document.getElementById('fileInput');
+        const fileLabel = document.getElementById('fileLabel');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const verifyBtn = document.getElementById('verifyBtn');
+
+        let currentVerificationResult = null;
+        let currentFile = null;
+        let currentQRData = null;
+
+        // File input handling
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                fileLabel.classList.add('has-file');
+                fileLabel.innerHTML = `
+                    <div class="file-info">
+                        <div class="file-icon">📄</div>
+                        <div class="file-text">File selected:</div>
+                        <div class="file-name">${file.name}</div>
+                    </div>
+                `;
+            }
+        });
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!fileInput.files[0]) {
+                alert('Please select a file');
+                return;
+            }
+
+            const qrData = document.getElementById('qrData').value;
+
+            // Validate JSON
+            try {
+                JSON.parse(qrData);
+            } catch (error) {
+                alert('Invalid QR data format. Please paste valid JSON.');
+                return;
+            }
+
+            currentFile = fileInput.files[0];
+            currentQRData = qrData;
+
+            const formData = new FormData();
+            formData.append('file', currentFile);
+            formData.append('qr_data', qrData);
+
+            verifyBtn.disabled = true;
+            loading.classList.add('show');
+            result.classList.remove('show');
+
+            try {
+                const response = await fetch(`${API_URL}/api/verify`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Verification request failed');
+                }
+
+                const data = await response.json();
+                currentVerificationResult = data;
+                displayResult(data);
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                loading.classList.remove('show');
+                verifyBtn.disabled = false;
+            }
+        });
+
+        function displayResult(data) {
+            const resultTitle = document.getElementById('resultTitle');
+            const checksDiv = document.getElementById('checks');
+            const infoDiv = document.getElementById('info');
+            const reasonDiv = document.getElementById('reason');
+
+            // Set title and styling
+            if (data.valid) {
+                result.className = 'result valid show';
+                resultTitle.innerHTML = '<span>✅</span><span>Valid Submission</span>';
+            } else {
+                result.className = 'result invalid show';
+                resultTitle.innerHTML = '<span>❌</span><span>Invalid Submission</span>';
+            }
+
+            // Display checks
+            checksDiv.innerHTML = '';
+            if (data.checks) {
+                Object.entries(data.checks).forEach(([key, value]) => {
+                    const checkItem = document.createElement('div');
+                    checkItem.className = 'check-item';
+
+                    const label = document.createElement('span');
+                    label.className = 'check-label';
+                    label.textContent = formatCheckLabel(key);
+
+                    const status = document.createElement('span');
+                    status.className = `check-status ${value ? 'pass' : 'fail'}`;
+                    status.textContent = value ? '✓ Pass' : '✗ Fail';
+
+                    checkItem.appendChild(label);
+                    checkItem.appendChild(status);
+                    checksDiv.appendChild(checkItem);
+                });
+            }
+
+            // Display info
+            infoDiv.innerHTML = '';
+            addInfoRow(infoDiv, 'Submission ID', data.submission_id);
+            addInfoRow(infoDiv, 'Timestamp', new Date(data.timestamp).toLocaleString());
+            addInfoRow(infoDiv, 'Competition', data.competition_id);
+            addInfoRow(infoDiv, 'Verified At', new Date(data.verified_at).toLocaleString());
+
+            // Display reason if invalid
+            if (!data.valid && data.reason) {
+                reasonDiv.textContent = '⚠️ ' + data.reason;
+                reasonDiv.style.display = 'block';
+            } else {
+                reasonDiv.style.display = 'none';
+            }
+
+            result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function formatCheckLabel(key) {
+            const labels = {
+                'signature_valid': 'Cryptographic Signature',
+                'content_match': 'Content Hash Match',
+                'before_deadline': 'Submitted Before Deadline',
+                'timestamp_valid': 'Timestamp Validity'
+            };
+            return labels[key] || key;
+        }
+
+        function addInfoRow(parent, label, value) {
+            const row = document.createElement('div');
+            row.className = 'info-item';
+
+            const labelSpan = document.createElement('span');
+            labelSpan.className = 'info-label';
+            labelSpan.textContent = label;
+
+            const valueSpan = document.createElement('span');
+            valueSpan.className = 'info-value';
+            valueSpan.textContent = value;
+
+            row.appendChild(labelSpan);
+            row.appendChild(valueSpan);
+            parent.appendChild(row);
+        }
+
+        // Export verification report
+        document.getElementById('exportBtn').addEventListener('click', async () => {
+            if (!currentFile || !currentQRData) return;
+
+            const formData = new FormData();
+            formData.append('file', currentFile);
+            formData.append('qr_data', currentQRData);
+
+            try {
+                const response = await fetch(`${API_URL}/api/verify/export`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Export failed');
+                }
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.download = `verification-report-${currentVerificationResult.submission_id}.json`;
+                link.href = url;
+                link.click();
+                URL.revokeObjectURL(url);
+
+            } catch (error) {
+                alert('Export failed: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
