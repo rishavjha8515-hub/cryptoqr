@@ -415,7 +415,8 @@
     </div>
 
     <script>
-        const API_URL = 'https://cryptoqr-api.onrender.com/'; // Change for production
+        // FIXED: Removed trailing slash!
+        const API_URL = 'https://cryptoqr-api.onrender.com';
 
         const form = document.getElementById('verifyForm');
         const fileInput = document.getElementById('fileInput');

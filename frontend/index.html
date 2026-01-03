@@ -288,6 +288,36 @@
             text-decoration: underline;
         }
 
+        .status-message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .status-message.show {
+            display: block;
+        }
+
+        .status-message.error {
+            background: #fff5f5;
+            color: #c53030;
+            border: 1px solid #fc8181;
+        }
+
+        .status-message.success {
+            background: #f0fff4;
+            color: #22543d;
+            border: 1px solid #68d391;
+        }
+
+        .status-message.info {
+            background: #ebf8ff;
+            color: #2c5282;
+            border: 1px solid #90cdf4;
+        }
+
         @media (max-width: 640px) {
             .container {
                 padding: 32px 24px;
@@ -310,6 +340,8 @@
             <h1>CryptoQR Submission</h1>
             <p class="subtitle">Generate cryptographically signed QR code for your work</p>
         </div>
+
+        <div id="statusMessage" class="status-message"></div>
 
         <form id="submitForm">
             <div class="form-group">
@@ -383,7 +415,8 @@
     </div>
 
     <script>
-        const API_URL = 'https://cryptoqr-api.onrender.com/'; // Change for production
+        // FIXED: Removed trailing slash!
+        const API_URL = 'https://cryptoqr-api.onrender.com';
 
         const form = document.getElementById('submitForm');
         const fileInput = document.getElementById('fileInput');
@@ -391,9 +424,21 @@
         const loading = document.getElementById('loading');
         const result = document.getElementById('result');
         const submitBtn = document.getElementById('submitBtn');
+        const statusMessage = document.getElementById('statusMessage');
 
         let currentQRData = null;
         let currentQRImage = null;
+
+        // Show status message
+        function showStatus(message, type = 'info') {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message ${type} show`;
+        }
+
+        // Hide status message
+        function hideStatus() {
+            statusMessage.className = 'status-message';
+        }
 
         // File input handling
         fileInput.addEventListener('change', (e) => {
@@ -413,9 +458,10 @@
         // Form submission
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            hideStatus();
 
             if (!fileInput.files[0]) {
-                alert('Please select a file');
+                showStatus('❌ Please select a file', 'error');
                 return;
             }
 
@@ -432,28 +478,50 @@
             submitBtn.disabled = true;
             loading.classList.add('show');
             result.classList.remove('show');
+            showStatus('⏳ Processing... (This may take 30-60 seconds on first request)', 'info');
 
             try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second timeout
+
                 const response = await fetch(`${API_URL}/api/submit`, {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    signal: controller.signal
                 });
+
+                clearTimeout(timeoutId);
 
                 if (response.status === 409) {
                     const error = await response.json();
-                    alert(`⚠️ Duplicate Submission\n\nThis file was already submitted.\n\nSubmission ID: ${error.detail.existing_submission_id}\nTime: ${new Date(error.detail.existing_timestamp).toLocaleString()}`);
+                    showStatus(`⚠️ Duplicate Submission: This file was already submitted.\n\nSubmission ID: ${error.detail.existing_submission_id}\nTime: ${new Date(error.detail.existing_timestamp).toLocaleString()}`, 'error');
+                    return;
+                }
+
+                if (response.status === 413) {
+                    showStatus('❌ File too large (maximum 50MB)', 'error');
                     return;
                 }
 
                 if (!response.ok) {
-                    throw new Error('Submission failed');
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.detail || `Server error (${response.status})`);
                 }
 
                 const data = await response.json();
                 displayResult(data);
+                showStatus('✅ QR Code generated successfully!', 'success');
 
             } catch (error) {
-                alert('Error: ' + error.message);
+                console.error('Submission error:', error);
+                
+                if (error.name === 'AbortError') {
+                    showStatus('❌ Request timeout. The server may be waking up. Please try again in a moment.', 'error');
+                } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    showStatus('❌ Cannot connect to server. Please check your internet connection.', 'error');
+                } else {
+                    showStatus(`❌ Submission failed: ${error.message}`, 'error');
+                }
             } finally {
                 loading.classList.remove('show');
                 submitBtn.disabled = false;
@@ -497,6 +565,21 @@
         const defaultDeadline = new Date();
         defaultDeadline.setDate(defaultDeadline.getDate() + 7);
         document.getElementById('deadline').value = defaultDeadline.toISOString().slice(0, 16);
+
+        // Test backend connection on load
+        async function testConnection() {
+            try {
+                const response = await fetch(`${API_URL}/`);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Backend connected:', data);
+                }
+            } catch (error) {
+                showStatus('⚠️ Warning: Cannot connect to backend. It may be waking up (takes ~30 seconds on first request).', 'info');
+            }
+        }
+
+        testConnection();
     </script>
 </body>
 </html>
