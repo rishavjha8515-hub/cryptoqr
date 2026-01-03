@@ -1,7 +1,7 @@
 ## 🌐 Live Demo
 
 **🚀 Try it now:**
-- **Frontend:** https://your-vercel-url.vercel.app
+- **Frontend:** https://cryptoqr-pi.vercel.app/
 - **Backend API:** https://cryptoqr-api-awkm.onrender.com
 
 *Note: Backend may take 30 seconds to wake up on first request (free tier)*
