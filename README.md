@@ -158,6 +158,6 @@ Special thanks to the organizers and mentors who made this possible.
 
 **CryptoQR** • *Cryptographic proof for the age of AI*
 
-[Demo]  • [Report Issue](https://github.com/rishavjha8515-hub/cryptoqr/issues)
+[Demo](https://cryptoqr-pi.vercel.app/)  • [Report Issue](https://github.com/rishavjha8515-hub/cryptoqr/issues)
 
 </div>
