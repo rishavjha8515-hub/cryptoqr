@@ -1,4 +1,10 @@
+## 🌐 Live Demo
 
+**🚀 Try it now:**
+- **Frontend:** https://your-vercel-url.vercel.app
+- **Backend API:** https://cryptoqr-api-awkm.onrender.com
+
+*Note: Backend may take 30 seconds to wake up on first request (free tier)*
 # 🔐 CryptoQR
 
 **Cryptographic proof-of-work verification for digital submissions**
