@@ -4,7 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CryptoQR - Submit</title>
+    <link rel="stylesheet" href="mobile-responsive.css">
     <style>
+        :root {
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #764ba2;
+            --card-bg: #ffffff;
+            --text-primary: #1a202c;
+            --text-secondary: #718096;
+            --border-color: #e2e8f0;
+            --input-bg: #ffffff;
+            --input-border: #e2e8f0;
+        }
+
+        [data-theme="dark"] {
+            --bg-gradient-start: #1a202c;
+            --bg-gradient-end: #2d3748;
+            --card-bg: #2d3748;
+            --text-primary: #f7fafc;
+            --text-secondary: #cbd5e0;
+            --border-color: #4a5568;
+            --input-bg: #1a202c;
+            --input-border: #4a5568;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,21 +36,27 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            transition: background 0.3s ease;
         }
 
         .container {
-            background: white;
+            background: var(--card-bg);
             border-radius: 24px;
             padding: 48px;
             max-width: 680px;
             width: 100%;
             box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+            transition: background 0.3s ease;
+        }
+
+        [data-theme="dark"] .container {
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
         }
 
         .header {
@@ -41,14 +70,14 @@
         }
 
         h1 {
-            color: #1a202c;
+            color: var(--text-primary);
             font-size: 32px;
             font-weight: 700;
             margin-bottom: 12px;
         }
 
         .subtitle {
-            color: #718096;
+            color: var(--text-secondary);
             font-size: 16px;
             line-height: 1.6;
         }
@@ -59,7 +88,7 @@
 
         label {
             display: block;
-            color: #2d3748;
+            color: var(--text-primary);
             font-weight: 600;
             margin-bottom: 8px;
             font-size: 14px;
@@ -70,11 +99,13 @@
         input[type="datetime-local"] {
             width: 100%;
             padding: 14px 16px;
-            border: 2px solid #e2e8f0;
+            border: 2px solid var(--input-border);
             border-radius: 12px;
             font-size: 15px;
             transition: all 0.2s;
             font-family: inherit;
+            background: var(--input-bg);
+            color: var(--text-primary);
         }
 
         input:focus {
@@ -100,21 +131,26 @@
             align-items: center;
             justify-content: center;
             padding: 32px;
-            border: 2px dashed #cbd5e0;
+            border: 2px dashed var(--border-color);
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.2s;
-            background: #f7fafc;
+            background: var(--input-bg);
         }
 
         .file-input-label:hover {
             border-color: #667eea;
-            background: #edf2f7;
+            background: var(--input-bg);
+            opacity: 0.8;
         }
 
         .file-input-label.has-file {
             border-color: #48bb78;
             background: #f0fff4;
+        }
+
+        [data-theme="dark"] .file-input-label.has-file {
+            background: #22543d;
         }
 
         .file-info {
@@ -127,13 +163,13 @@
         }
 
         .file-text {
-            color: #4a5568;
+            color: var(--text-secondary);
             font-size: 15px;
             font-weight: 500;
         }
 
         .file-name {
-            color: #2d3748;
+            color: var(--text-primary);
             font-weight: 600;
             margin-top: 8px;
             word-break: break-all;
@@ -170,7 +206,7 @@
             display: none;
             text-align: center;
             padding: 32px;
-            color: #4a5568;
+            color: var(--text-secondary);
         }
 
         .loading.show {
@@ -178,7 +214,7 @@
         }
 
         .spinner {
-            border: 3px solid #e2e8f0;
+            border: 3px solid var(--border-color);
             border-top: 3px solid #667eea;
             border-radius: 50%;
             width: 40px;
@@ -201,6 +237,10 @@
             border-radius: 12px;
         }
 
+        [data-theme="dark"] .result {
+            background: #22543d;
+        }
+
         .result.show {
             display: block;
         }
@@ -212,6 +252,10 @@
             display: flex;
             align-items: center;
             gap: 12px;
+        }
+
+        [data-theme="dark"] .result h3 {
+            color: #c6f6d5;
         }
 
         .qr-image {
@@ -236,6 +280,10 @@
             border-radius: 8px;
         }
 
+        [data-theme="dark"] .info-item {
+            background: #1a202c;
+        }
+
         .info-label {
             color: #718096;
             font-size: 13px;
@@ -243,7 +291,7 @@
         }
 
         .info-value {
-            color: #2d3748;
+            color: var(--text-primary);
             font-weight: 600;
             font-size: 13px;
             font-family: 'Courier New', monospace;
@@ -255,7 +303,7 @@
 
         .button-group {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 12px;
             margin-top: 24px;
         }
@@ -266,15 +314,25 @@
             border: 2px solid #667eea;
         }
 
+        [data-theme="dark"] .button-secondary {
+            background: #1a202c;
+            color: #90cdf4;
+            border-color: #90cdf4;
+        }
+
         .button-secondary:hover {
             background: #edf2f7;
+        }
+
+        [data-theme="dark"] .button-secondary:hover {
+            background: #2d3748;
         }
 
         .nav-link {
             text-align: center;
             margin-top: 24px;
             padding-top: 24px;
-            border-top: 1px solid #e2e8f0;
+            border-top: 1px solid var(--border-color);
         }
 
         .nav-link a {
@@ -282,6 +340,11 @@
             text-decoration: none;
             font-weight: 600;
             font-size: 15px;
+            margin: 0 8px;
+        }
+
+        [data-theme="dark"] .nav-link a {
+            color: #90cdf4;
         }
 
         .nav-link a:hover {
@@ -318,6 +381,55 @@
             border: 1px solid #90cdf4;
         }
 
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: var(--card-bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            border: 2px solid var(--border-color);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(180deg);
+        }
+
+        .theme-toggle-icon {
+            font-size: 28px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+        }
+
+        [data-theme="dark"] .toast {
+            background: #2d3748;
+            color: #f7fafc;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
         @media (max-width: 640px) {
             .container {
                 padding: 32px 24px;
@@ -330,12 +442,25 @@
             .button-group {
                 grid-template-columns: 1fr;
             }
+
+            .theme-toggle {
+                width: 50px;
+                height: 50px;
+                top: 16px;
+                right: 16px;
+            }
+
+            .theme-toggle-icon {
+                font-size: 24px;
+            }
         }
     </style>
-</head><link rel="stylesheet" href="mobile-responsive.css">
-<a href="dashboard.html" class="nav-link">📊 Dashboard</a>
-<script src="dark-mode.js"></script>
+</head>
 <body>
+    <div class="theme-toggle" id="themeToggle">
+        <span class="theme-toggle-icon" id="themeIcon">🌙</span>
+    </div>
+
     <div class="container">
         <div class="header">
             <div class="logo">🔐</div>
@@ -379,7 +504,7 @@
 
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>Generating cryptographic signature...</p>
+            <p id="loadingText">Generating cryptographic signature...</p>
         </div>
 
         <div class="result" id="result">
@@ -406,18 +531,21 @@
             </div>
 
             <div class="button-group">
-                <button class="button-secondary" id="downloadQR">Download QR Code</button>
-                <button class="button-secondary" id="downloadData">Download QR Data</button>
+                <button class="button-secondary" id="downloadQR">📥 QR Code</button>
+                <button class="button-secondary" id="downloadData">📄 JSON Data</button>
+                <button class="button-secondary" id="downloadCert">📜 Certificate</button>
             </div>
         </div>
 
         <div class="nav-link">
-            <a href="verify.html">Verify a Submission →</a>
+            <a href="verify.html">🔍 Verify</a>
+            <a href="dashboard.html">📊 Dashboard</a>
+            <a href="batch-verify.html">📦 Batch Verify</a>
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-        // FIXED: Removed trailing slash!
         const API_URL = 'https://cryptoqr-api.onrender.com';
 
         const form = document.getElementById('submitForm');
@@ -427,17 +555,46 @@
         const result = document.getElementById('result');
         const submitBtn = document.getElementById('submitBtn');
         const statusMessage = document.getElementById('statusMessage');
+        const loadingText = document.getElementById('loadingText');
 
         let currentQRData = null;
         let currentQRImage = null;
+        let currentSubmissionData = null;
 
-        // Show status message
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        let theme = localStorage.getItem('cryptoqr-theme') || 'light';
+
+        function applyTheme(t) {
+            document.documentElement.setAttribute('data-theme', t);
+            localStorage.setItem('cryptoqr-theme', t);
+            themeIcon.textContent = t === 'dark' ? '☀️' : '🌙';
+        }
+
+        applyTheme(theme);
+
+        themeToggle.addEventListener('click', () => {
+            theme = theme === 'light' ? 'dark' : 'light';
+            applyTheme(theme);
+            showToast(`${theme === 'dark' ? '🌙 Dark' : '☀️ Light'} mode activated`);
+        });
+
+        // Toast notification
+        function showToast(message, duration = 3000) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), duration);
+        }
+
+        // Status message
         function showStatus(message, type = 'info') {
             statusMessage.textContent = message;
             statusMessage.className = `status-message ${type} show`;
         }
 
-        // Hide status message
         function hideStatus() {
             statusMessage.className = 'status-message';
         }
@@ -456,6 +613,22 @@
                 `;
             }
         });
+
+        // Animated loading messages
+        let loadingInterval;
+        function startLoadingAnimation() {
+            const messages = ['Hashing file...', 'Generating signature...', 'Creating QR code...'];
+            let i = 0;
+            loadingInterval = setInterval(() => {
+                loadingText.textContent = messages[i++ % messages.length];
+            }, 2000);
+        }
+
+        function stopLoadingAnimation() {
+            clearInterval(loadingInterval);
+            loadingText.textContent = 'Generating cryptographic signature...';
+        }
+
         // Form submission
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -463,6 +636,7 @@
 
             if (!fileInput.files[0]) {
                 showStatus('❌ Please select a file', 'error');
+                showToast('Please select a file', 3000);
                 return;
             }
 
@@ -479,11 +653,12 @@
             submitBtn.disabled = true;
             loading.classList.add('show');
             result.classList.remove('show');
+            startLoadingAnimation();
             showStatus('⏳ Processing... (This may take 30-60 seconds on first request)', 'info');
 
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second timeout
+                const timeoutId = setTimeout(() => controller.abort(), 90000);
 
                 const response = await fetch(`${API_URL}/api/submit`, {
                     method: 'POST',
@@ -495,12 +670,14 @@
 
                 if (response.status === 409) {
                     const error = await response.json();
-                    showStatus(`⚠️ Duplicate Submission: This file was already submitted.\n\nSubmission ID: ${error.detail.existing_submission_id}\nTime: ${new Date(error.detail.existing_timestamp).toLocaleString()}`, 'error');
+                    showStatus(`⚠️ Duplicate Submission: This file was already submitted.`, 'error');
+                    showToast('Duplicate submission detected', 5000);
                     return;
                 }
 
                 if (response.status === 413) {
                     showStatus('❌ File too large (maximum 50MB)', 'error');
+                    showToast('File too large', 3000);
                     return;
                 }
 
@@ -510,21 +687,27 @@
                 }
 
                 const data = await response.json();
+                currentSubmissionData = data;
                 displayResult(data);
                 showStatus('✅ QR Code generated successfully!', 'success');
+                showToast('✅ Submission created successfully!', 3000);
 
             } catch (error) {
                 console.error('Submission error:', error);
                 
                 if (error.name === 'AbortError') {
-                    showStatus('❌ Request timeout. The server may be waking up. Please try again in a moment.', 'error');
-                } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    showStatus('❌ Request timeout. The server may be waking up. Please try again.', 'error');
+                    showToast('Request timeout - please retry', 5000);
+                } else if (error.message.includes('Failed to fetch')) {
                     showStatus('❌ Cannot connect to server. Please check your internet connection.', 'error');
+                    showToast('Connection error', 3000);
                 } else {
                     showStatus(`❌ Submission failed: ${error.message}`, 'error');
+                    showToast('Submission failed', 3000);
                 }
             } finally {
                 loading.classList.remove('show');
+                stopLoadingAnimation();
                 submitBtn.disabled = false;
             }
         });
@@ -548,6 +731,7 @@
             link.download = `cryptoqr-${currentQRData.payload.submission_id}.png`;
             link.href = `data:image/png;base64,${currentQRImage}`;
             link.click();
+            showToast('📥 QR Code downloaded', 2000);
         });
 
         // Download QR data JSON
@@ -560,23 +744,92 @@
             link.href = url;
             link.click();
             URL.revokeObjectURL(url);
+            showToast('📄 JSON data downloaded', 2000);
         });
 
-        // Set default deadline (7 days from now)
+        // Download certificate PDF
+        document.getElementById('downloadCert').addEventListener('click', async () => {
+            try {
+                if (typeof window.jspdf === 'undefined') {
+                    showToast('Loading PDF library...', 2000);
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                const primaryColor = [102, 126, 234];
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+
+                // Border
+                doc.setDrawColor(...primaryColor);
+                doc.setLineWidth(2);
+                doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+
+                // Header
+                doc.setFontSize(32);
+                doc.setTextColor(...primaryColor);
+                doc.setFont(undefined, 'bold');
+                doc.text('Certificate of Submission', pageWidth / 2, 40, { align: 'center' });
+
+                doc.setFontSize(14);
+                doc.setTextColor(100, 100, 100);
+                doc.setFont(undefined, 'normal');
+                doc.text('Cryptographically Verified', pageWidth / 2, 50, { align: 'center' });
+
+                // QR Code
+                const qrSize = 80;
+                const qrX = (pageWidth - qrSize) / 2;
+                doc.addImage(`data:image/png;base64,${currentQRImage}`, 'PNG', qrX, 70, qrSize, qrSize);
+
+                // Details
+                let yPos = 170;
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 0);
+
+                const details = [
+                    ['Submission ID', currentSubmissionData.submission_id],
+                    ['Timestamp', new Date(currentSubmissionData.timestamp).toLocaleString()],
+                    ['Content Hash', currentSubmissionData.content_hash.substring(0, 32) + '...']
+                ];
+
+                details.forEach(([label, value]) => {
+                    doc.setFont(undefined, 'bold');
+                    doc.text(label + ':', 40, yPos);
+                    doc.setFont(undefined, 'normal');
+                    doc.text(String(value), 100, yPos);
+                    yPos += 10;
+                });
+
+                // Footer
+                doc.setFontSize(10);
+                doc.setTextColor(150, 150, 150);
+                doc.text('Cryptographically secured using Ed25519 signatures', pageWidth / 2, pageHeight - 30, { align: 'center' });
+                doc.text('CryptoQR v1.0.0 - Built at AlamedaHacks 2026', pageWidth / 2, pageHeight - 20, { align: 'center' });
+
+                doc.save(`cryptoqr-certificate-${currentSubmissionData.submission_id}.pdf`);
+                showToast('📜 Certificate downloaded', 2000);
+            } catch (error) {
+                console.error('PDF generation error:', error);
+                showToast('Error generating PDF', 3000);
+            }
+        });
+
+        // Set default deadline
         const defaultDeadline = new Date();
         defaultDeadline.setDate(defaultDeadline.getDate() + 7);
         document.getElementById('deadline').value = defaultDeadline.toISOString().slice(0, 16);
 
-        // Test backend connection on load
+        // Test connection
         async function testConnection() {
             try {
                 const response = await fetch(`${API_URL}/`);
                 if (response.ok) {
-                    const data = await response.json();
-                    console.log('✅ Backend connected:', data);
+                    console.log('✅ Backend connected');
                 }
             } catch (error) {
-                showStatus('⚠️ Warning: Cannot connect to backend. It may be waking up (takes ~30 seconds on first request).', 'info');
+                showStatus('⚠️ Backend is waking up (takes ~30 seconds on first request)', 'info');
             }
         }
 
