@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoQR - Batch Verify</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            padding: 48px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            color: #1a202c;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 16px;
+        }
+
+        .helper {
+            background: #ebf8ff;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 32px;
+            font-size: 14px;
+            color: #2c5282;
+            display: flex;
+            align-items: start;
+            gap: 12px;
+        }
+
+        .upload-section {
+            background: #f7fafc;
+            border: 2px dashed #cbd5e0;
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            margin-bottom: 32px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-section:hover {
+            border-color: #667eea;
+            background: #edf2f7;
+        }
+
+        .upload-section.dragover {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .upload-text {
+            font-size: 16px;
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .upload-subtext {
+            font-size: 13px;
+            color: #718096;
+        }
+
+        .file-list {
+            margin-bottom: 24px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #f7fafc;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .file-icon {
+            font-size: 24px;
+        }
+
+        .file-name {
+            font-size: 14px;
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        .remove-btn {
+            background: #fff5f5;
+            color: #c53030;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        button {
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-section {
+            display: none;
+            margin-bottom: 32px;
+        }
+
+        .progress-section.show {
+            display: block;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #4a5568;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .results-section.show {
+            display: block;
+        }
+
+        .results-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .summary-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .summary-value.valid {
+            color: #38a169;
+        }
+
+        .summary-value.invalid {
+            color: #e53e3e;
+        }
+
+        .summary-value.total {
+            color: #667eea;
+        }
+
+        .summary-label {
+            font-size: 13px;
+            color: #718096;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .result-item {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+
+        .result-item.valid {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .result-item.invalid {
+            border-color: #f56565;
+            background: #fff5f5;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .result-filename {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .result-status {
+            font-size: 14px;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+
+        .result-status.valid {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .result-status.invalid {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .result-details {
+            font-size: 13px;
+            color: #718096;
+        }
+
+        .nav-link {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .nav-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 0 12px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 32px 24px;
+            }
+
+            .results-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">📦</div>
+            <h1>Batch Verification</h1>
+            <p class="subtitle">Verify multiple submissions at once</p>
+        </div>
+
+        <div class="helper">
+            <span>ℹ️</span>
+            <span>Upload pairs of files: each submission file + its corresponding QR data JSON file. Files will be matched automatically based on naming.</span>
+        </div>
+
+        <div class="upload-section" id="uploadSection">
+            <input type="file" id="fileInput" multiple hidden>
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Drop files here or click to browse</div>
+            <div class="upload-subtext">Select multiple files (submissions + QR JSON files)</div>
+        </div>
+
+        <div id="fileList" class="file-list"></div>
+
+        <div class="action-buttons">
+            <button class="btn-primary" id="verifyBtn" disabled>Verify All</button>
+            <button class="btn-secondary" id="clearBtn" disabled>Clear All</button>
+        </div>
+
+        <div class="progress-section" id="progressSection">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Processing...</div>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <h2 style="margin-bottom: 20px;">Verification Results</h2>
+            
+            <div class="results-summary">
+                <div class="summary-card">
+                    <div class="summary-value valid" id="validCount">0</div>
+                    <div class="summary-label">Valid</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value invalid" id="invalidCount">0</div>
+                    <div class="summary-label">Invalid</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value total" id="totalCount">0</div>
+                    <div class="summary-label">Total</div>
+                </div>
+            </div>
+
+            <div id="resultsList"></div>
+
+            <button class="btn-secondary" style="width: 100%; margin-top: 20px;" onclick="exportResults()">
+                📄 Export Report
+            </button>
+        </div>
+
+        <div class="nav-link">
+            <a href="index.html">← Submit</a>
+            <a href="verify.html">Single Verify</a>
+            <a href="dashboard.html">Dashboard →</a>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://cryptoqr-api.onrender.com';
+
+        const uploadSection = document.getElementById('uploadSection');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const verifyBtn = document.getElementById('verifyBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const progressSection = document.getElementById('progressSection');
+        const resultsSection = document.getElementById('resultsSection');
+
+        let uploadedFiles = [];
+        let verificationResults = [];
+
+        // Upload section click
+        uploadSection.addEventListener('click', () => fileInput.click());
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(Array.from(e.target.files));
+        });
+
+        // Drag and drop
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            handleFiles(Array.from(e.dataTransfer.files));
+        });
+
+        function handleFiles(files) {
+            uploadedFiles.push(...files);
+            renderFileList();
+            updateButtons();
+        }
+
+        function renderFileList() {
+            fileList.innerHTML = '';
+            uploadedFiles.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `
+                    <div class="file-info">
+                        <span class="file-icon">${file.name.endsWith('.json') ? '📋' : '📄'}</span>
+                        <span class="file-name">${file.name}</span>
+                    </div>
+                    <button class="remove-btn" onclick="removeFile(${index})">Remove</button>
+                `;
+                fileList.appendChild(item);
+            });
+        }
+
+        function removeFile(index) {
+            uploadedFiles.splice(index, 1);
+            renderFileList();
+            updateButtons();
+        }
+
+        function updateButtons() {
+            const hasPairs = matchFilePairs().length > 0;
+            verifyBtn.disabled = !hasPairs;
+            clearBtn.disabled = uploadedFiles.length === 0;
+        }
+
+        clearBtn.addEventListener('click', () => {
+            uploadedFiles = [];
+            renderFileList();
+            updateButtons();
+            resultsSection.classList.remove('show');
+        });
+
+        function matchFilePairs() {
+            const pairs = [];
+            const jsonFiles = uploadedFiles.filter(f => f.name.endsWith('.json'));
+            const dataFiles = uploadedFiles.filter(f => !f.name.endsWith('.json'));
+
+            dataFiles.forEach(dataFile => {
+                const baseName = dataFile.name.replace(/\.[^/.]+$/, '');
+                const jsonFile = jsonFiles.find(j => 
+                    j.name.includes(baseName) || baseName.includes(j.name.replace('.json', ''))
+                );
+
+                if (jsonFile) {
+                    pairs.push({ dataFile, jsonFile });
+                }
+            });
+
+            return pairs;
+        }
+
+        verifyBtn.addEventListener('click', async () => {
+            const pairs = matchFilePairs();
+            
+            if (pairs.length === 0) {
+                alert('No matching file pairs found. Ensure each submission file has a corresponding QR JSON file.');
+                return;
+            }
+
+            verifyBtn.disabled = true;
+            progressSection.classList.add('show');
+            resultsSection.classList.remove('show');
+            verificationResults = [];
+
+            let processed = 0;
+
+            for (const pair of pairs) {
+                try {
+                    const result = await verifyPair(pair);
+                    verificationResults.push(result);
+                } catch (error) {
+                    verificationResults.push({
+                        filename: pair.dataFile.name,
+                        valid: false,
+                        error: error.message
+                    });
+                }
+
+                processed++;
+                updateProgress(processed, pairs.length);
+            }
+
+            progressSection.classList.remove('show');
+            displayResults();
+            verifyBtn.disabled = false;
+        });
+
+        async function verifyPair(pair) {
+            const formData = new FormData();
+            formData.append('file', pair.dataFile);
+
+            const qrContent = await pair.jsonFile.text();
+            formData.append('qr_data', qrContent);
+
+            const response = await fetch(`${API_URL}/api/verify`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error('Verification request failed');
+            }
+
+            const data = await response.json();
+            return {
+                filename: pair.dataFile.name,
+                ...data
+            };
+        }
+
+        function updateProgress(current, total) {
+            const percent = (current / total) * 100;
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressText').textContent = `Verifying ${current} of ${total}...`;
+        }
+
+        function displayResults() {
+            const validCount = verificationResults.filter(r => r.valid).length;
+            const invalidCount = verificationResults.filter(r => !r.valid).length;
+
+            document.getElementById('validCount').textContent = validCount;
+            document.getElementById('invalidCount').textContent = invalidCount;
+            document.getElementById('totalCount').textContent = verificationResults.length;
+
+            const resultsList = document.getElementById('resultsList');
+            resultsList.innerHTML = '';
+
+            verificationResults.forEach(result => {
+                const item = document.createElement('div');
+                item.className = `result-item ${result.valid ? 'valid' : 'invalid'}`;
+                item.innerHTML = `
+                    <div class="result-header">
+                        <span class="result-filename">${result.filename}</span>
+                        <span class="result-status ${result.valid ? 'valid' : 'invalid'}">
+                            ${result.valid ? '✓ Valid' : '✗ Invalid'}
+                        </span>
+                    </div>
+                    <div class="result-details">
+                        ${result.submission_id ? `ID: ${result.submission_id}` : ''}
+                        ${result.error ? `Error: ${result.error}` : ''}
+                        ${result.reason ? `Reason: ${result.reason}` : ''}
+                    </div>
+                `;
+                resultsList.appendChild(item);
+            });
+
+            resultsSection.classList.add('show');
+        }
+
+        function exportResults() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                summary: {
+                    total: verificationResults.length,
+                    valid: verificationResults.filter(r => r.valid).length,
+                    invalid: verificationResults.filter(r => !r.valid).length
+                },
+                results: verificationResults
+            };
+
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = `batch-verification-${Date.now()}.json`;
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
