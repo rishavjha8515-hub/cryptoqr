@@ -20,7 +20,7 @@ import qrcode
 from io import BytesIO
 
 from crypto_core import CryptoQRCore, VerificationResult
-from email_sender import send_submission_notification
+from email_sender import send_submission_notification, email_sender
 
 
 # Initialize FastAPI app
@@ -63,6 +63,15 @@ async def startup_event():
     if not PRIVATE_KEY:
         print("⚠️  Warning: Using ephemeral keys (set CRYPTOQR_PRIVATE_KEY env var)")
         print(f"Public Key:\n{PUBLIC_KEY_PEM}")
+    
+    # 🆕 EMAIL STATUS CHECK
+    if email_sender.is_configured:
+        print("✅ Email system configured and ready")
+        print(f"   Sender: {email_sender.sender_email}")
+        print(f"   SMTP: {email_sender.smtp_server}:{email_sender.smtp_port}")
+    else:
+        print("⚠️  Email notifications disabled (no credentials configured)")
+    
     print("✓ Server ready")
     print("=" * 60)
 
@@ -78,6 +87,7 @@ async def root():
             "submit": "/api/submit",
             "verify": "/api/verify",
             "public_key": "/api/public-key",
+            "email_status": "/api/email-status",
             "stats": "/api/stats/{competition_id}"
         }
     }
@@ -98,6 +108,22 @@ async def get_public_key():
     }
 
 
+@app.get("/api/email-status")
+async def get_email_status():
+    """
+    Check if email notifications are configured.
+    
+    Returns:
+        Email system status
+    """
+    return {
+        "email_enabled": email_sender.is_configured,
+        "smtp_server": email_sender.smtp_server if email_sender.is_configured else None,
+        "sender_email": email_sender.sender_email if email_sender.is_configured else None,
+        "message": "Email notifications active" if email_sender.is_configured else "Configure SENDER_EMAIL and SENDER_PASSWORD env vars to enable"
+    }
+
+
 @app.post("/api/submit")
 async def submit_document(
     file: UploadFile = File(..., description="Document to verify"),
@@ -108,6 +134,15 @@ async def submit_document(
     """
     Generate cryptographically signed QR code for document submission.
     NOW WITH EMAIL NOTIFICATIONS!
+    
+    Args:
+        file: Document file to hash and sign
+        competition_id: Unique competition identifier
+        deadline: Deadline in ISO 8601 format
+        email: Optional submitter email
+        
+    Returns:
+        Submission data including QR code image and signature
     """
     try:
         # Read file data
@@ -200,102 +235,6 @@ async def submit_document(
         print(f"[SUBMIT] {submission['submission_id']} | {competition_id} | {content_hash[:8]}... | Email: {email_sent if email else 'N/A'}")
         
         return response_data
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"[ERROR] Submission failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-# ALSO ADD THIS NEW ENDPOINT for email status
-@app.get("/api/email-status")
-async def get_email_status():
-    """
-    Check if email notifications are configured.
-    
-    Returns:
-        Email system status
-    """
-    from email_sender import email_sender
-    
-    return {
-        "email_enabled": email_sender.is_configured,
-        "smtp_server": email_sender.smtp_server if email_sender.is_configured else None,
-        "sender_email": email_sender.sender_email if email_sender.is_configured else None,
-        "message": "Email notifications active" if email_sender.is_configured else "Configure SENDER_EMAIL and SENDER_PASSWORD env vars to enable"
-    }
-    """
-    Generate cryptographically signed QR code for document submission.
-    
-    Args:
-        file: Document file to hash and sign
-        competition_id: Unique competition identifier
-        deadline: Deadline in ISO 8601 format
-        email: Optional submitter email
-        
-    Returns:
-        Submission data including QR code image and signature
-    """
-    try:
-        # Read file data
-        file_data = await file.read()
-        
-        if len(file_data) == 0:
-            raise HTTPException(status_code=400, detail="Empty file uploaded")
-        
-        if len(file_data) > 50 * 1024 * 1024:  # 50MB limit
-            raise HTTPException(status_code=413, detail="File too large (max 50MB)")
-        
-        # Check for duplicate submission
-        content_hash = crypto.hash_file(file_data)
-        
-        if content_hash in submissions_db[competition_id]:
-            existing = submissions_db[competition_id][content_hash]
-            raise HTTPException(
-                status_code=409,
-                detail={
-                    "error": "duplicate_submission",
-                    "message": "This file was already submitted to this competition",
-                    "existing_submission_id": existing['submission_id'],
-                    "existing_timestamp": existing['timestamp']
-                }
-            )
-        
-        # Create cryptographic submission
-        submission = crypto.create_submission(
-            file_data=file_data,
-            competition_id=competition_id,
-            deadline=deadline,
-            email=email
-        )
-        
-        # Store submission for duplicate checking
-        submissions_db[competition_id][content_hash] = {
-            'submission_id': submission['submission_id'],
-            'timestamp': submission['timestamp'],
-            'email': email
-        }
-        
-        # Generate QR code image
-        qr_image = generate_qr_image(submission)
-        
-        # Log submission
-        print(f"[SUBMIT] {submission['submission_id']} | {competition_id} | {content_hash[:8]}...")
-        
-        return {
-            "success": True,
-            "submission_id": submission['submission_id'],
-            "timestamp": submission['timestamp'],
-            "content_hash": content_hash,
-            "qr_data": {
-                "payload": submission['payload'],
-                "signature": submission['signature'],
-                "version": submission['version']
-            },
-            "qr_image_base64": qr_image,
-            "verification_url": f"/verify?id={submission['submission_id']}"
-        }
         
     except HTTPException:
         raise
