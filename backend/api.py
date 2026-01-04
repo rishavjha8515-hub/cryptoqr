@@ -20,6 +20,7 @@ import qrcode
 from io import BytesIO
 
 from crypto_core import CryptoQRCore, VerificationResult
+from email_sender import send_submission_notification
 
 
 # Initialize FastAPI app
@@ -104,6 +105,126 @@ async def submit_document(
     deadline: str = Form(..., description="Submission deadline (ISO 8601)"),
     email: str = Form(None, description="Optional submitter email")
 ):
+    """
+    Generate cryptographically signed QR code for document submission.
+    NOW WITH EMAIL NOTIFICATIONS!
+    """
+    try:
+        # Read file data
+        file_data = await file.read()
+        
+        if len(file_data) == 0:
+            raise HTTPException(status_code=400, detail="Empty file uploaded")
+        
+        if len(file_data) > 50 * 1024 * 1024:  # 50MB limit
+            raise HTTPException(status_code=413, detail="File too large (max 50MB)")
+        
+        # Check for duplicate submission
+        content_hash = crypto.hash_file(file_data)
+        
+        if content_hash in submissions_db[competition_id]:
+            existing = submissions_db[competition_id][content_hash]
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "error": "duplicate_submission",
+                    "message": "This file was already submitted to this competition",
+                    "existing_submission_id": existing['submission_id'],
+                    "existing_timestamp": existing['timestamp']
+                }
+            )
+        
+        # Create cryptographic submission
+        submission = crypto.create_submission(
+            file_data=file_data,
+            competition_id=competition_id,
+            deadline=deadline,
+            email=email
+        )
+        
+        # Store submission for duplicate checking
+        submissions_db[competition_id][content_hash] = {
+            'submission_id': submission['submission_id'],
+            'timestamp': submission['timestamp'],
+            'email': email
+        }
+        
+        # Generate QR code image
+        qr_image = generate_qr_image(submission)
+        
+        # Prepare response data
+        response_data = {
+            "success": True,
+            "submission_id": submission['submission_id'],
+            "timestamp": submission['timestamp'],
+            "content_hash": content_hash,
+            "qr_data": {
+                "payload": submission['payload'],
+                "signature": submission['signature'],
+                "version": submission['version']
+            },
+            "qr_image_base64": qr_image,
+            "verification_url": f"/verify?id={submission['submission_id']}"
+        }
+        
+        # 🆕 SEND EMAIL NOTIFICATION IF EMAIL PROVIDED
+        email_sent = False
+        if email:
+            try:
+                email_sent = send_submission_notification(
+                    recipient_email=email,
+                    submission_data={
+                        'submission_id': submission['submission_id'],
+                        'timestamp': submission['timestamp'],
+                        'content_hash': content_hash,
+                        'qr_data': response_data['qr_data']
+                    },
+                    qr_image_base64=qr_image
+                )
+                
+                if email_sent:
+                    print(f"✅ Email sent to {email}")
+                    response_data['email_sent'] = True
+                    response_data['email_message'] = f"Confirmation sent to {email}"
+                else:
+                    print(f"⚠️  Email notification failed for {email}")
+                    response_data['email_sent'] = False
+                    response_data['email_message'] = "Email notification unavailable (not configured)"
+                    
+            except Exception as e:
+                print(f"❌ Email error: {e}")
+                response_data['email_sent'] = False
+                response_data['email_message'] = "Email notification failed"
+        
+        # Log submission
+        print(f"[SUBMIT] {submission['submission_id']} | {competition_id} | {content_hash[:8]}... | Email: {email_sent if email else 'N/A'}")
+        
+        return response_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[ERROR] Submission failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ALSO ADD THIS NEW ENDPOINT for email status
+@app.get("/api/email-status")
+async def get_email_status():
+    """
+    Check if email notifications are configured.
+    
+    Returns:
+        Email system status
+    """
+    from email_sender import email_sender
+    
+    return {
+        "email_enabled": email_sender.is_configured,
+        "smtp_server": email_sender.smtp_server if email_sender.is_configured else None,
+        "sender_email": email_sender.sender_email if email_sender.is_configured else None,
+        "message": "Email notifications active" if email_sender.is_configured else "Configure SENDER_EMAIL and SENDER_PASSWORD env vars to enable"
+    }
     """
     Generate cryptographically signed QR code for document submission.
     
