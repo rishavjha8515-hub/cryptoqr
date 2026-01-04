@@ -1,0 +1,357 @@
+/* Mobile-First Responsive Design for CryptoQR */
+
+/* Base Mobile Styles (< 640px) */
+@media (max-width: 640px) {
+    body {
+        padding: 12px;
+    }
+
+    .container {
+        padding: 24px 20px;
+        border-radius: 16px;
+    }
+
+    .logo {
+        font-size: 40px;
+        margin-bottom: 12px;
+    }
+
+    h1 {
+        font-size: 24px;
+        margin-bottom: 8px;
+    }
+
+    .subtitle {
+        font-size: 14px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    label {
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="datetime-local"],
+    textarea {
+        padding: 12px 14px;
+        font-size: 16px; /* Prevents iOS zoom */
+    }
+
+    button {
+        padding: 14px;
+        font-size: 15px;
+    }
+
+    .file-input-label {
+        padding: 24px 16px;
+    }
+
+    .file-icon {
+        font-size: 32px;
+        margin-bottom: 8px;
+    }
+
+    .file-text {
+        font-size: 14px;
+    }
+
+    .result,
+    .competitions-section {
+        padding: 24px 20px;
+    }
+
+    .result h3 {
+        font-size: 18px;
+        margin-bottom: 16px;
+    }
+
+    .qr-image {
+        max-width: 250px;
+        margin: 20px auto;
+    }
+
+    .button-group {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .stat-card {
+        padding: 24px;
+    }
+
+    .stat-value {
+        font-size: 36px;
+    }
+
+    .stat-icon {
+        font-size: 32px;
+        margin-bottom: 12px;
+    }
+
+    .section-header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+    }
+
+    .refresh-btn {
+        width: 100%;
+    }
+
+    .nav-links {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .nav-link {
+        padding: 12px 20px;
+        text-align: center;
+    }
+
+    .competition-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .competition-count {
+        font-size: 20px;
+    }
+
+    .competition-meta {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .info-grid {
+        gap: 10px;
+    }
+
+    .info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        padding: 12px 14px;
+    }
+
+    .info-value {
+        text-align: left;
+        max-width: 100%;
+    }
+
+    .checks {
+        gap: 10px;
+    }
+
+    .check-item {
+        padding: 12px 14px;
+    }
+
+    .helper {
+        padding: 14px;
+        font-size: 13px;
+        gap: 10px;
+    }
+
+    .theme-toggle {
+        width: 50px;
+        height: 50px;
+        top: 16px;
+        right: 16px;
+    }
+
+    .theme-toggle-icon {
+        font-size: 24px;
+    }
+
+    .chart {
+        height: 250px;
+    }
+}
+
+/* Tablet Styles (641px - 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
+    .container {
+        padding: 40px 32px;
+    }
+
+    h1 {
+        font-size: 28px;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+    }
+
+    .button-group {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Touch-Friendly Interactions */
+@media (hover: none) and (pointer: coarse) {
+    /* Larger touch targets */
+    button,
+    .file-input-label,
+    .nav-link {
+        min-height: 44px; /* iOS recommended minimum */
+    }
+
+    /* Remove hover effects on touch devices */
+    .file-input-label:hover {
+        border-color: #cbd5e0;
+        background: #f7fafc;
+    }
+
+    button:hover {
+        transform: none;
+    }
+
+    .stat-card:hover {
+        transform: none;
+    }
+
+    .competition-item:hover {
+        border-color: #e2e8f0;
+        background: #f7fafc;
+    }
+
+    /* Active states for touch feedback */
+    button:active {
+        transform: scale(0.98);
+    }
+
+    .nav-link:active {
+        transform: scale(0.98);
+    }
+}
+
+/* Landscape Mobile */
+@media (max-width: 896px) and (orientation: landscape) {
+    body {
+        padding: 16px;
+    }
+
+    .container {
+        max-width: 100%;
+        padding: 24px;
+    }
+
+    .header {
+        margin-bottom: 24px;
+    }
+
+    .logo {
+        font-size: 36px;
+    }
+
+    h1 {
+        font-size: 22px;
+    }
+}
+
+/* Small Screens (< 375px) */
+@media (max-width: 374px) {
+    .container {
+        padding: 20px 16px;
+    }
+
+    h1 {
+        font-size: 20px;
+    }
+
+    .stat-value {
+        font-size: 32px;
+    }
+
+    .qr-image {
+        max-width: 200px;
+    }
+}
+
+/* Large Screens (> 1440px) */
+@media (min-width: 1441px) {
+    .container {
+        max-width: 800px;
+    }
+
+    .stats-grid {
+        max-width: 1200px;
+        margin: 0 auto 40px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    body {
+        background: white;
+    }
+
+    .container {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+
+    .theme-toggle,
+    .nav-links,
+    button {
+        display: none;
+    }
+
+    .qr-image {
+        max-width: 300px;
+        page-break-inside: avoid;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .spinner {
+        animation: none;
+        border: 4px solid #667eea;
+    }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+    .container {
+        border: 2px solid currentColor;
+    }
+
+    button,
+    .nav-link {
+        border: 2px solid currentColor;
+    }
+}
+
+/* Accessibility - Focus Visible */
+*:focus-visible {
+    outline: 3px solid #667eea;
+    outline-offset: 2px;
+}
+
+/* Safe Area Insets for Notched Devices */
+@supports (padding: max(0px)) {
+    body {
+        padding-left: max(12px, env(safe-area-inset-left));
+        padding-right: max(12px, env(safe-area-inset-right));
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+    }
+}
