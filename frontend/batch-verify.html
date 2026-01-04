@@ -399,14 +399,124 @@
         </div>
 
         <div class="nav-link">
-            <a href="index.html">← Submit</a>
-            <a href="verify.html">Single Verify</a>
-            <a href="dashboard.html">Dashboard →</a>
+            <a href="index.html">📝 Submit</a>
+            <a href="verify.html">🔍 Single Verify</a>
+            <a href="dashboard.html">📊 Dashboard</a>
         </div>
+    </div>
+
+    <style>
+        :root {
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #764ba2;
+            --card-bg: #ffffff;
+            --text-primary: #1a202c;
+            --text-secondary: #718096;
+            --border-color: #e2e8f0;
+        }
+
+        [data-theme="dark"] {
+            --bg-gradient-start: #1a202c;
+            --bg-gradient-end: #2d3748;
+            --card-bg: #2d3748;
+            --text-primary: #f7fafc;
+            --text-secondary: #cbd5e0;
+            --border-color: #4a5568;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            transition: background 0.3s ease;
+        }
+
+        .container {
+            background: var(--card-bg);
+            transition: background 0.3s ease;
+        }
+
+        h1, h2, .competition-name, .file-name {
+            color: var(--text-primary);
+        }
+
+        .subtitle, .upload-text, .upload-subtext, .progress-text, .result-details {
+            color: var(--text-secondary);
+        }
+
+        .helper {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+        }
+
+        .upload-section {
+            border-color: var(--border-color);
+        }
+
+        .file-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: var(--card-bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            border: 2px solid var(--border-color);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(180deg);
+        }
+
+        .theme-toggle-icon {
+            font-size: 28px;
+        }
+
+        [data-theme="dark"] .container {
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        [data-theme="dark"] .summary-card,
+        [data-theme="dark"] .result-item {
+            background: #1a202c;
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-toggle" id="themeToggle">
+        <span class="theme-toggle-icon" id="themeIcon">🌙</span>
     </div>
 
     <script>
         const API_URL = 'https://cryptoqr-api.onrender.com';
+
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        let theme = localStorage.getItem('cryptoqr-theme') || 'light';
+
+        function applyTheme(t) {
+            document.documentElement.setAttribute('data-theme', t);
+            localStorage.setItem('cryptoqr-theme', t);
+            themeIcon.textContent = t === 'dark' ? '☀️' : '🌙';
+        }
+
+        applyTheme(theme);
+
+        themeToggle.addEventListener('click', () => {
+            theme = theme === 'light' ? 'dark' : 'light';
+            applyTheme(theme);
+        });
 
         const uploadSection = document.getElementById('uploadSection');
         const fileInput = document.getElementById('fileInput');
@@ -418,6 +528,15 @@
 
         let uploadedFiles = [];
         let verificationResults = [];
+
+        // Toast notification
+        function showToast(message, duration = 3000) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), duration);
+        }
 
         // Upload section click
         uploadSection.addEventListener('click', () => fileInput.click());
@@ -447,6 +566,7 @@
             uploadedFiles.push(...files);
             renderFileList();
             updateButtons();
+            showToast(`Added ${files.length} file(s)`, 2000);
         }
 
         function renderFileList() {
@@ -482,6 +602,7 @@
             renderFileList();
             updateButtons();
             resultsSection.classList.remove('show');
+            showToast('Files cleared', 2000);
         });
 
         function matchFilePairs() {
@@ -489,25 +610,52 @@
             const jsonFiles = uploadedFiles.filter(f => f.name.endsWith('.json'));
             const dataFiles = uploadedFiles.filter(f => !f.name.endsWith('.json'));
 
-            dataFiles.forEach(dataFile => {
-                const baseName = dataFile.name.replace(/\.[^/.]+$/, '');
-                const jsonFile = jsonFiles.find(j => 
-                    j.name.includes(baseName) || baseName.includes(j.name.replace('.json', ''))
-                );
+            console.log('JSON files:', jsonFiles.map(f => f.name));
+            console.log('Data files:', dataFiles.map(f => f.name));
 
-                if (jsonFile) {
-                    pairs.push({ dataFile, jsonFile });
+            // Simple matching: pair each data file with each JSON file
+            // For demo purposes, if equal counts, pair in order
+            if (jsonFiles.length === dataFiles.length && jsonFiles.length > 0) {
+                for (let i = 0; i < dataFiles.length; i++) {
+                    pairs.push({ dataFile: dataFiles[i], jsonFile: jsonFiles[i] });
                 }
-            });
+            } else {
+                // Try to match by name similarity
+                dataFiles.forEach(dataFile => {
+                    const baseName = dataFile.name.replace(/\.[^/.]+$/, '').toLowerCase();
+                    
+                    // Try exact match first
+                    let jsonFile = jsonFiles.find(j => {
+                        const jsonBase = j.name.replace('.json', '').toLowerCase();
+                        return jsonBase === baseName || 
+                               jsonBase.includes(baseName) || 
+                               baseName.includes(jsonBase) ||
+                               j.name.toLowerCase().includes('cryptoqr-data');
+                    });
 
+                    // If no match and we have unpaired JSON files, use the first one
+                    if (!jsonFile && jsonFiles.length > 0) {
+                        const usedJsonFiles = pairs.map(p => p.jsonFile);
+                        jsonFile = jsonFiles.find(j => !usedJsonFiles.includes(j));
+                    }
+
+                    if (jsonFile) {
+                        pairs.push({ dataFile, jsonFile });
+                    }
+                });
+            }
+
+            console.log('Matched pairs:', pairs.length);
             return pairs;
         }
 
         verifyBtn.addEventListener('click', async () => {
             const pairs = matchFilePairs();
             
+            console.log('Starting batch verification with', pairs.length, 'pairs');
+            
             if (pairs.length === 0) {
-                alert('No matching file pairs found. Ensure each submission file has a corresponding QR JSON file.');
+                alert('❌ No matching file pairs found.\n\nPlease upload:\n1. Your submission files (any format)\n2. The corresponding QR JSON files\n\nExample:\n- submission.pdf + cryptoqr-data-XXX.json');
                 return;
             }
 
@@ -519,10 +667,14 @@
             let processed = 0;
 
             for (const pair of pairs) {
+                console.log('Verifying pair:', pair.dataFile.name, '+', pair.jsonFile.name);
+                
                 try {
                     const result = await verifyPair(pair);
                     verificationResults.push(result);
+                    console.log('Result:', result.valid ? 'VALID' : 'INVALID');
                 } catch (error) {
+                    console.error('Verification error:', error);
                     verificationResults.push({
                         filename: pair.dataFile.name,
                         valid: false,
@@ -534,28 +686,44 @@
                 updateProgress(processed, pairs.length);
             }
 
+            console.log('Batch verification complete. Results:', verificationResults);
             progressSection.classList.remove('show');
             displayResults();
             verifyBtn.disabled = false;
+            
+            const validCount = verificationResults.filter(r => r.valid).length;
+            const totalCount = verificationResults.length;
+            showToast(`✅ Verified ${validCount}/${totalCount} submissions`, 5000);
         });
 
         async function verifyPair(pair) {
+            console.log('Creating FormData for:', pair.dataFile.name);
+            
             const formData = new FormData();
             formData.append('file', pair.dataFile);
 
             const qrContent = await pair.jsonFile.text();
+            console.log('QR content length:', qrContent.length);
+            
             formData.append('qr_data', qrContent);
 
+            console.log('Sending verification request...');
             const response = await fetch(`${API_URL}/api/verify`, {
                 method: 'POST',
                 body: formData
             });
 
+            console.log('Response status:', response.status);
+
             if (!response.ok) {
-                throw new Error('Verification request failed');
+                const errorText = await response.text();
+                console.error('Verification failed:', errorText);
+                throw new Error(`Verification request failed (${response.status})`);
             }
 
             const data = await response.json();
+            console.log('Verification response:', data);
+            
             return {
                 filename: pair.dataFile.name,
                 ...data
