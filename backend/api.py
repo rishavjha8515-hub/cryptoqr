@@ -66,9 +66,8 @@ async def startup_event():
     
     # EMAIL STATUS CHECK
     if email_sender.is_configured:
-        print("✅ Email system configured and ready")
+        print("✅ Email system configured and ready (SendGrid)")
         print(f"   Sender: {email_sender.sender_email}")
-        print(f"   SMTP: {email_sender.smtp_server}:{email_sender.smtp_port}")
     else:
         print("⚠️  Email notifications disabled (no credentials configured)")
     
@@ -119,9 +118,9 @@ async def get_email_status():
     """
     return {
         "email_enabled": email_sender.is_configured,
-        "smtp_server": email_sender.smtp_server if email_sender.is_configured else None,
+        "email_provider": "SendGrid API" if email_sender.is_configured else None,
         "sender_email": email_sender.sender_email if email_sender.is_configured else None,
-        "message": "Email notifications active" if email_sender.is_configured else "Configure SENDER_EMAIL and SENDER_PASSWORD env vars to enable"
+        "message": "Email notifications active (SendGrid)" if email_sender.is_configured else "Configure SENDGRID_API_KEY environment variable to enable"
     }
 
 
@@ -138,7 +137,7 @@ async def test_email_send():
             "success": False,
             "error": "Email not configured",
             "email_enabled": False,
-            "message": "Set SENDER_EMAIL and SENDER_PASSWORD environment variables"
+            "message": "Set SENDGRID_API_KEY environment variable and verify sender email"
         }
     
     test_data = {
@@ -160,7 +159,7 @@ async def test_email_send():
         print(f"🧪 TEST EMAIL: Attempting to send test email...")
         print(f"   Recipient: rishavjha8515@gmail.com")
         print(f"   Sender: {email_sender.sender_email}")
-        print(f"   SMTP: {email_sender.smtp_server}:{email_sender.smtp_port}")
+        print(f"   Provider: SendGrid API")
         print("=" * 60)
         
         result = send_submission_notification(
@@ -179,7 +178,7 @@ async def test_email_send():
             "recipient": "rishavjha8515@gmail.com",
             "submission_id": test_data['submission_id'],
             "email_configured": True,
-            "instructions": "If email didn't arrive, check: 1) Spam/Junk folder, 2) Gmail App Password is correct (16 chars, no spaces), 3) 2-Step Verification is enabled"
+            "instructions": "If email didn't arrive, check: 1) Spam/Junk folder, 2) Sender email is verified in SendGrid, 3) SENDGRID_API_KEY is correct"
         }
         
     except Exception as e:
@@ -198,9 +197,9 @@ async def test_email_send():
             "traceback": error_trace,
             "message": "❌ Email sending failed. See error details above.",
             "troubleshooting": {
-                "check_password": "Ensure SENDER_PASSWORD is a valid 16-character Gmail App Password with no spaces",
-                "check_2fa": "2-Step Verification must be enabled on the Gmail account",
-                "check_smtp": "Verify SMTP settings are correct (smtp.gmail.com:587)"
+                "check_api_key": "Ensure SENDGRID_API_KEY is set correctly in Render environment variables",
+                "verify_sender": "Verify your sender email at https://app.sendgrid.com/settings/sender_auth/senders",
+                "check_quota": "Free tier allows 100 emails/day"
             }
         }
 
