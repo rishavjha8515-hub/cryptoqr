@@ -1,39 +1,45 @@
 """
 Email Notification System for CryptoQR
-Sends QR code and JSON data to submitter's email
+Sends QR code and JSON data to submitter's email using SendGrid
 """
 
 import os
-import smtplib
 import base64
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.image import MIMEImage
-from email.mime.application import MIMEApplication
+import json
 from datetime import datetime
 from typing import Optional, Dict
-import json
+
+# Try to import SendGrid
+try:
+    from sendgrid import SendGridAPIClient
+    from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition
+    SENDGRID_AVAILABLE = True
+except ImportError:
+    SENDGRID_AVAILABLE = False
+    print("⚠️  SendGrid not installed. Run: pip install sendgrid")
 
 
 class EmailSender:
     """
-    Handles sending submission confirmation emails with QR codes.
+    Handles sending submission confirmation emails with QR codes using SendGrid.
     
-    Uses Gmail SMTP (free tier) or can be configured for other providers.
+    SendGrid is more reliable than SMTP and works great with Render's free tier.
     """
     
     def __init__(self):
-        # Email configuration from environment variables
-        self.smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-        self.smtp_port = int(os.getenv("SMTP_PORT", "587"))
-        self.sender_email = os.getenv("SENDER_EMAIL")
-        self.sender_password = os.getenv("SENDER_PASSWORD")
+        # SendGrid configuration
+        self.api_key = os.getenv("SENDGRID_API_KEY")
+        self.sender_email = os.getenv("SENDER_EMAIL", "rishavjha8515@gmail.com")
         
         # Check if email is configured
-        self.is_configured = bool(self.sender_email and self.sender_password)
+        self.is_configured = bool(self.api_key and SENDGRID_AVAILABLE)
         
-        if not self.is_configured:
-            print("⚠️  Email notifications disabled (no credentials configured)")
+        if not self.api_key:
+            print("⚠️  Email notifications disabled: SENDGRID_API_KEY not set")
+        elif not SENDGRID_AVAILABLE:
+            print("⚠️  Email notifications disabled: SendGrid not installed")
+        else:
+            print(f"✅ SendGrid email configured with sender: {self.sender_email}")
     
     def send_submission_email(
         self,
@@ -57,41 +63,54 @@ class EmailSender:
             return False
         
         try:
-            # Create message
-            msg = MIMEMultipart('related')
-            msg['From'] = self.sender_email
-            msg['To'] = recipient_email
-            msg['Subject'] = f"🔐 CryptoQR Submission Confirmation - {submission_data['submission_id']}"
-            
             # Create HTML body
             html_body = self._create_email_html(submission_data)
-            msg.attach(MIMEText(html_body, 'html'))
+            
+            # Create email message
+            message = Mail(
+                from_email=self.sender_email,
+                to_emails=recipient_email,
+                subject=f"🔒 CryptoQR Submission Confirmation - {submission_data['submission_id']}",
+                html_content=html_body
+            )
             
             # Attach QR code image
-            qr_image_bytes = base64.b64decode(qr_image_base64)
-            qr_image = MIMEImage(qr_image_bytes, name=f"cryptoqr-{submission_data['submission_id']}.png")
-            qr_image.add_header('Content-ID', '<qr_image>')
-            qr_image.add_header('Content-Disposition', 'attachment', 
-                              filename=f"cryptoqr-{submission_data['submission_id']}.png")
-            msg.attach(qr_image)
+            qr_attachment = Attachment(
+                FileContent(qr_image_base64),
+                FileName(f"cryptoqr-{submission_data['submission_id']}.png"),
+                FileType("image/png"),
+                Disposition("attachment")
+            )
+            message.attachment = qr_attachment
             
             # Attach JSON data
             json_data = json.dumps(submission_data['qr_data'], indent=2)
-            json_attachment = MIMEApplication(json_data, Name=f"cryptoqr-data-{submission_data['submission_id']}.json")
-            json_attachment['Content-Disposition'] = f'attachment; filename="cryptoqr-data-{submission_data["submission_id"]}.json"'
-            msg.attach(json_attachment)
+            json_base64 = base64.b64encode(json_data.encode()).decode()
             
-            # Send email
-            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
-                server.starttls()
-                server.login(self.sender_email, self.sender_password)
-                server.send_message(msg)
+            json_attachment = Attachment(
+                FileContent(json_base64),
+                FileName(f"cryptoqr-data-{submission_data['submission_id']}.json"),
+                FileType("application/json"),
+                Disposition("attachment")
+            )
+            message.add_attachment(json_attachment)
             
-            print(f"✅ Email sent to {recipient_email}")
-            return True
+            # Send email via SendGrid
+            sg = SendGridAPIClient(self.api_key)
+            response = sg.send(message)
+            
+            if response.status_code in [200, 201, 202]:
+                print(f"✅ Email sent to {recipient_email} (Status: {response.status_code})")
+                return True
+            else:
+                print(f"⚠️  Unexpected response from SendGrid: {response.status_code}")
+                print(f"   Body: {response.body}")
+                return False
             
         except Exception as e:
-            print(f"❌ Failed to send email: {e}")
+            print(f"❌ Failed to send email via SendGrid: {e}")
+            import traceback
+            print(f"   Traceback: {traceback.format_exc()}")
             return False
     
     def _create_email_html(self, submission_data: Dict) -> str:
@@ -142,19 +161,6 @@ class EmailSender:
             font-family: 'Courier New', monospace;
             font-weight: 600;
         }}
-        .qr-section {{
-            text-align: center;
-            padding: 20px;
-            background: white;
-            border-radius: 12px;
-            margin: 20px 0;
-        }}
-        .qr-image {{
-            max-width: 300px;
-            border: 2px solid #667eea;
-            border-radius: 8px;
-            margin: 20px auto;
-        }}
         .warning {{
             background: #fff5f5;
             border-left: 4px solid #f56565;
@@ -184,7 +190,7 @@ class EmailSender:
 </head>
 <body>
     <div class="header">
-        <div class="logo">🔐</div>
+        <div class="logo">🔒</div>
         <h1>CryptoQR Submission Confirmed</h1>
         <p>Your cryptographically signed submission is ready</p>
     </div>
@@ -205,13 +211,12 @@ class EmailSender:
         </div>
     </div>
     
-    <div class="qr-section">
+    <div style="text-align: center; background: white; padding: 20px; border-radius: 12px; margin: 20px 0;">
         <h2>Your Cryptographic QR Code</h2>
         <p>This QR code contains your cryptographic signature and cannot be forged.</p>
-        <img src="cid:qr_image" class="qr-image" alt="QR Code">
-        <p><strong>Attached Files:</strong></p>
+        <p><strong>📥 Attached Files:</strong></p>
         <ul style="text-align: left; display: inline-block;">
-            <li>📥 <code>cryptoqr-{submission_data['submission_id']}.png</code> - QR Code Image</li>
+            <li>🖼️ <code>cryptoqr-{submission_data['submission_id']}.png</code> - QR Code Image</li>
             <li>📄 <code>cryptoqr-data-{submission_data['submission_id']}.json</code> - Signature Data</li>
         </ul>
     </div>
@@ -280,7 +285,7 @@ def send_submission_notification(
 
 if __name__ == "__main__":
     # Test email system
-    print("Testing email system...")
+    print("Testing SendGrid email system...")
     
     test_data = {
         'submission_id': 'TEST123',
@@ -293,11 +298,13 @@ if __name__ == "__main__":
     test_qr = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
     
     if email_sender.is_configured:
+        print("\n🧪 Sending test email...")
         result = email_sender.send_submission_email(
-            "test@example.com",
+            "rishavjha8515@gmail.com",
             test_data,
             test_qr
         )
-        print(f"Test email result: {'✅ Success' if result else '❌ Failed'}")
+        print(f"\nTest email result: {'✅ Success' if result else '❌ Failed'}")
     else:
-        print("⚠️  Configure SENDER_EMAIL and SENDER_PASSWORD env vars to test")
+        print("\n⚠️  Configure SENDGRID_API_KEY env var to test")
+        print("Get your API key from: https://app.sendgrid.com/settings/api_keys")
