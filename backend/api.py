@@ -64,7 +64,7 @@ async def startup_event():
         print("⚠️  Warning: Using ephemeral keys (set CRYPTOQR_PRIVATE_KEY env var)")
         print(f"Public Key:\n{PUBLIC_KEY_PEM}")
     
-    # 🆕 EMAIL STATUS CHECK
+    # EMAIL STATUS CHECK
     if email_sender.is_configured:
         print("✅ Email system configured and ready")
         print(f"   Sender: {email_sender.sender_email}")
@@ -88,6 +88,7 @@ async def root():
             "verify": "/api/verify",
             "public_key": "/api/public-key",
             "email_status": "/api/email-status",
+            "test_email": "/api/test-email",
             "stats": "/api/stats/{competition_id}"
         }
     }
@@ -124,6 +125,86 @@ async def get_email_status():
     }
 
 
+@app.get("/api/test-email")
+async def test_email_send():
+    """
+    🆕 Send a test email to verify email system works
+    
+    Returns:
+        Test email result with success status
+    """
+    if not email_sender.is_configured:
+        return {
+            "success": False,
+            "error": "Email not configured",
+            "email_enabled": False,
+            "message": "Set SENDER_EMAIL and SENDER_PASSWORD environment variables"
+        }
+    
+    test_data = {
+        'submission_id': 'TEST-' + datetime.now().strftime('%Y%m%d-%H%M%S'),
+        'timestamp': datetime.now().isoformat() + 'Z',
+        'content_hash': 'a3f5d8c9e2b7f1a4d6c8e0f2a1b3c5d7',
+        'qr_data': {
+            'test': 'data',
+            'message': 'This is a test email from CryptoQR',
+            'purpose': 'Email system verification'
+        }
+    }
+    
+    # Small 1x1 pixel PNG for testing
+    test_qr = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+    
+    try:
+        print("=" * 60)
+        print(f"🧪 TEST EMAIL: Attempting to send test email...")
+        print(f"   Recipient: rishavjha8515@gmail.com")
+        print(f"   Sender: {email_sender.sender_email}")
+        print(f"   SMTP: {email_sender.smtp_server}:{email_sender.smtp_port}")
+        print("=" * 60)
+        
+        result = send_submission_notification(
+            recipient_email="rishavjha8515@gmail.com",
+            submission_data=test_data,
+            qr_image_base64=test_qr
+        )
+        
+        print("=" * 60)
+        print(f"🧪 TEST EMAIL RESULT: {'✅ SUCCESS' if result else '❌ FAILED'}")
+        print("=" * 60)
+        
+        return {
+            "success": result,
+            "message": "✅ Test email sent successfully! Check your inbox (and spam folder)." if result else "❌ Failed to send email. Check server logs for details.",
+            "recipient": "rishavjha8515@gmail.com",
+            "submission_id": test_data['submission_id'],
+            "email_configured": True,
+            "instructions": "If email didn't arrive, check: 1) Spam/Junk folder, 2) Gmail App Password is correct (16 chars, no spaces), 3) 2-Step Verification is enabled"
+        }
+        
+    except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        
+        print("=" * 60)
+        print(f"🧪 TEST EMAIL ERROR:")
+        print(f"   Error: {e}")
+        print(f"   Traceback:\n{error_trace}")
+        print("=" * 60)
+        
+        return {
+            "success": False,
+            "error": str(e),
+            "traceback": error_trace,
+            "message": "❌ Email sending failed. See error details above.",
+            "troubleshooting": {
+                "check_password": "Ensure SENDER_PASSWORD is a valid 16-character Gmail App Password with no spaces",
+                "check_2fa": "2-Step Verification must be enabled on the Gmail account",
+                "check_smtp": "Verify SMTP settings are correct (smtp.gmail.com:587)"
+            }
+        }
+
+
 @app.post("/api/submit")
 async def submit_document(
     file: UploadFile = File(..., description="Document to verify"),
@@ -133,13 +214,13 @@ async def submit_document(
 ):
     """
     Generate cryptographically signed QR code for document submission.
-    NOW WITH EMAIL NOTIFICATIONS!
+    NOW WITH EMAIL NOTIFICATIONS! 📧
     
     Args:
         file: Document file to hash and sign
         competition_id: Unique competition identifier
         deadline: Deadline in ISO 8601 format
-        email: Optional submitter email
+        email: Optional submitter email for notification
         
     Returns:
         Submission data including QR code image and signature
@@ -206,6 +287,8 @@ async def submit_document(
         email_sent = False
         if email:
             try:
+                print(f"📧 Attempting to send email to {email}...")
+                
                 email_sent = send_submission_notification(
                     recipient_email=email,
                     submission_data={
@@ -218,21 +301,22 @@ async def submit_document(
                 )
                 
                 if email_sent:
-                    print(f"✅ Email sent to {email}")
+                    print(f"✅ Email sent successfully to {email}")
                     response_data['email_sent'] = True
-                    response_data['email_message'] = f"Confirmation sent to {email}"
+                    response_data['email_message'] = f"Confirmation email sent to {email}"
                 else:
                     print(f"⚠️  Email notification failed for {email}")
                     response_data['email_sent'] = False
-                    response_data['email_message'] = "Email notification unavailable (not configured)"
+                    response_data['email_message'] = "Email notification unavailable (not configured or failed)"
                     
             except Exception as e:
                 print(f"❌ Email error: {e}")
                 response_data['email_sent'] = False
-                response_data['email_message'] = "Email notification failed"
+                response_data['email_message'] = f"Email notification failed: {str(e)}"
         
         # Log submission
-        print(f"[SUBMIT] {submission['submission_id']} | {competition_id} | {content_hash[:8]}... | Email: {email_sent if email else 'N/A'}")
+        email_status = "✅" if email_sent else ("N/A" if not email else "❌")
+        print(f"[SUBMIT] {submission['submission_id']} | {competition_id} | {content_hash[:8]}... | Email: {email_status}")
         
         return response_data
         
