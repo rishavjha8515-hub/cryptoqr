@@ -284,6 +284,9 @@ async def submit_document(
         
         # 🆕 SEND EMAIL NOTIFICATION IF EMAIL PROVIDED
         email_sent = False
+        print(f"🔍 DEBUG: Email value = '{email}' (type: {type(email)})")
+        print(f"🔍 DEBUG: email_sender.is_configured = {email_sender.is_configured}")
+        
         if email:
             try:
                 print(f"📧 Attempting to send email to {email}...")
