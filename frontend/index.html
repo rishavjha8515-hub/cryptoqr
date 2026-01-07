@@ -998,31 +998,43 @@
         // Initial debug state
         debugStatus.innerHTML = 'Status: <span style="color: #718096;">Ready</span>';
 
-        // Dark mode toggle
+        // Dark mode toggle (works without localStorage for artifact viewer)
         const themeToggle = document.getElementById('themeToggle');
         const themeIcon = document.getElementById('themeIcon');
+        let isDarkMode = false;
 
-        // Check for saved theme preference or system preference
-        const savedTheme = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        
-        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-            document.body.classList.add('dark-mode');
-            themeIcon.textContent = '☀️';
-        } else {
-            themeIcon.textContent = '🌙';
+        // Try to check system preference
+        try {
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (prefersDark) {
+                isDarkMode = true;
+                document.body.classList.add('dark-mode');
+                themeIcon.textContent = '☀️';
+            }
+        } catch (e) {
+            // Ignore if matchMedia not available
         }
 
-        themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
+        themeToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            isDarkMode = !isDarkMode;
             
-            if (document.body.classList.contains('dark-mode')) {
+            console.log('Toggle clicked! Dark mode:', isDarkMode);
+            
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
                 themeIcon.textContent = '☀️';
-                localStorage.setItem('theme', 'dark');
-                console.log('🌙 Dark mode enabled');
+                console.log('🌙 Dark mode ENABLED');
+                // Try localStorage if available
+                try { localStorage.setItem('theme', 'dark'); } catch(e) {}
             } else {
+                document.body.classList.remove('dark-mode');
                 themeIcon.textContent = '🌙';
-                localStorage.setItem('theme', 'light');
-                console.log('☀️ Light mode enabled');
+                console.log('☀️ Light mode ENABLED');
+                // Try localStorage if available
+                try { localStorage.setItem('theme', 'light'); } catch(e) {}
             }
-        });
+        });;
+    </script>
+</body>
+</html>
