@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CryptoQR - Submit</title>
-    <link rel="stylesheet" href="mobile-responsive.css">
     <style>
         :root {
             --bg-gradient-start: #667eea;
@@ -15,17 +14,8 @@
             --border-color: #e2e8f0;
             --input-bg: #ffffff;
             --input-border: #e2e8f0;
-        }
-
-        [data-theme="dark"] {
-            --bg-gradient-start: #1a202c;
-            --bg-gradient-end: #2d3748;
-            --card-bg: #2d3748;
-            --text-primary: #f7fafc;
-            --text-secondary: #cbd5e0;
-            --border-color: #4a5568;
-            --input-bg: #1a202c;
-            --input-border: #4a5568;
+            --success-bg: #f0fff4;
+            --success-border: #48bb78;
         }
 
         * {
@@ -42,7 +32,6 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
-            transition: background 0.3s ease;
         }
 
         .container {
@@ -52,11 +41,6 @@
             max-width: 680px;
             width: 100%;
             box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
-            transition: background 0.3s ease;
-        }
-
-        [data-theme="dark"] .container {
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
         }
 
         .header {
@@ -94,6 +78,17 @@
             font-size: 14px;
         }
 
+        .label-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 8px;
+            font-weight: 700;
+        }
+
         input[type="text"],
         input[type="email"],
         input[type="datetime-local"] {
@@ -112,6 +107,73 @@
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .email-field-wrapper {
+            position: relative;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border: 2px dashed #667eea;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 24px 0;
+        }
+
+        .email-field-wrapper.has-email {
+            background: var(--success-bg);
+            border-color: var(--success-border);
+            border-style: solid;
+        }
+
+        .email-highlight-banner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .email-icon {
+            font-size: 32px;
+        }
+
+        .email-banner-text {
+            flex: 1;
+        }
+
+        .email-banner-title {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .email-banner-subtitle {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .email-benefits {
+            display: grid;
+            gap: 8px;
+            margin-top: 12px;
+            font-size: 13px;
+        }
+
+        .email-benefit-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+        }
+
+        .email-benefit-item::before {
+            content: "✓";
+            color: #48bb78;
+            font-weight: bold;
+            font-size: 16px;
         }
 
         .file-input-wrapper {
@@ -140,17 +202,12 @@
 
         .file-input-label:hover {
             border-color: #667eea;
-            background: var(--input-bg);
             opacity: 0.8;
         }
 
         .file-input-label.has-file {
             border-color: #48bb78;
-            background: #f0fff4;
-        }
-
-        [data-theme="dark"] .file-input-label.has-file {
-            background: #22543d;
+            background: var(--success-bg);
         }
 
         .file-info {
@@ -193,10 +250,6 @@
             box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
         }
 
-        button:active:not(:disabled) {
-            transform: translateY(0);
-        }
-
         button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
@@ -232,13 +285,9 @@
             display: none;
             margin-top: 32px;
             padding: 32px;
-            background: #f0fff4;
-            border: 2px solid #48bb78;
+            background: var(--success-bg);
+            border: 2px solid var(--success-border);
             border-radius: 12px;
-        }
-
-        [data-theme="dark"] .result {
-            background: #22543d;
         }
 
         .result.show {
@@ -248,14 +297,26 @@
         .result h3 {
             color: #22543d;
             font-size: 20px;
-            margin-bottom: 24px;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
             gap: 12px;
         }
 
-        [data-theme="dark"] .result h3 {
-            color: #c6f6d5;
+        .email-confirmation {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border-left: 4px solid #48bb78;
+        }
+
+        .email-confirmation-text {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-primary);
+            font-size: 14px;
         }
 
         .qr-image {
@@ -278,10 +339,6 @@
             padding: 12px 16px;
             background: white;
             border-radius: 8px;
-        }
-
-        [data-theme="dark"] .info-item {
-            background: #1a202c;
         }
 
         .info-label {
@@ -314,41 +371,22 @@
             border: 2px solid #667eea;
         }
 
-        [data-theme="dark"] .button-secondary {
-            background: #1a202c;
-            color: #90cdf4;
-            border-color: #90cdf4;
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
         }
 
-        .button-secondary:hover {
-            background: #edf2f7;
-        }
-
-        [data-theme="dark"] .button-secondary:hover {
-            background: #2d3748;
-        }
-
-        .nav-link {
-            text-align: center;
-            margin-top: 24px;
-            padding-top: 24px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .nav-link a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 15px;
-            margin: 0 8px;
-        }
-
-        [data-theme="dark"] .nav-link a {
-            color: #90cdf4;
-        }
-
-        .nav-link a:hover {
-            text-decoration: underline;
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
 
         .status-message {
@@ -370,7 +408,7 @@
         }
 
         .status-message.success {
-            background: #f0fff4;
+            background: var(--success-bg);
             color: #22543d;
             border: 1px solid #68d391;
         }
@@ -381,53 +419,23 @@
             border: 1px solid #90cdf4;
         }
 
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            background: var(--card-bg);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            z-index: 1000;
-            border: 2px solid var(--border-color);
-        }
-
-        .theme-toggle:hover {
-            transform: scale(1.1) rotate(180deg);
-        }
-
-        .theme-toggle-icon {
-            font-size: 28px;
-        }
-
-        .toast {
+        .debug-panel {
             position: fixed;
             bottom: 20px;
-            right: 20px;
-            background: white;
-            padding: 16px 24px;
+            left: 20px;
+            background: #1a202c;
+            color: #48bb78;
+            padding: 12px 16px;
             border-radius: 8px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-            z-index: 9999;
-            animation: slideIn 0.3s ease;
-            max-width: 400px;
+            font-size: 11px;
+            font-family: 'Courier New', monospace;
+            max-width: 300px;
+            opacity: 0.9;
+            z-index: 1000;
         }
 
-        [data-theme="dark"] .toast {
-            background: #2d3748;
-            color: #f7fafc;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(400px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        .debug-panel div {
+            margin: 4px 0;
         }
 
         @media (max-width: 640px) {
@@ -443,24 +451,14 @@
                 grid-template-columns: 1fr;
             }
 
-            .theme-toggle {
-                width: 50px;
-                height: 50px;
-                top: 16px;
-                right: 16px;
-            }
-
-            .theme-toggle-icon {
-                font-size: 24px;
+            .debug-panel {
+                font-size: 9px;
+                padding: 8px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="theme-toggle" id="themeToggle">
-        <span class="theme-toggle-icon" id="themeIcon">🌙</span>
-    </div>
-
     <div class="container">
         <div class="header">
             <div class="logo">🔐</div>
@@ -494,15 +492,41 @@
                 <input type="datetime-local" id="deadline" required>
             </div>
 
-            <div class="form-group">
-                <label>Email (optional) 📧</label>
-                <input type="email" id="email" placeholder="your@email.com">
-                <small style="color: var(--text-secondary); font-size: 12px; margin-top: 4px; display: block;">
-                    💡 We'll email you the QR code and JSON data instantly!
-                </small>
+            <!-- ENHANCED EMAIL SECTION -->
+            <div class="email-field-wrapper" id="emailWrapper">
+                <div class="email-highlight-banner">
+                    <div class="email-icon">📧</div>
+                    <div class="email-banner-text">
+                        <div class="email-banner-title">Get Your QR Code via Email!</div>
+                        <div class="email-banner-subtitle">Instant delivery • No sign-up required</div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>
+                        Email Address
+                        <span class="label-badge">RECOMMENDED</span>
+                    </label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email"
+                        placeholder="your@email.com"
+                        autocomplete="email"
+                    >
+                </div>
+
+                <div class="email-benefits">
+                    <div class="email-benefit-item">QR code image attachment</div>
+                    <div class="email-benefit-item">JSON signature data included</div>
+                    <div class="email-benefit-item">Beautiful certificate ready to print</div>
+                    <div class="email-benefit-item">No spam, just your submission</div>
+                </div>
             </div>
 
-            <button type="submit" id="submitBtn">Generate QR Code</button>
+            <button type="submit" id="submitBtn">
+                <span id="submitBtnText">🚀 Generate QR Code</span>
+            </button>
         </form>
 
         <div class="loading" id="loading">
@@ -515,6 +539,18 @@
                 <span>✅</span>
                 <span>Submission Created</span>
             </h3>
+
+            <div id="emailConfirmation" class="email-confirmation" style="display: none;">
+                <div class="email-confirmation-text">
+                    <span style="font-size: 24px;">📬</span>
+                    <div>
+                        <strong>Email sent successfully!</strong><br>
+                        <span style="font-size: 13px; color: var(--text-secondary);">
+                            Check <strong id="confirmedEmail"></strong> (and spam folder)
+                        </span>
+                    </div>
+                </div>
+            </div>
             
             <img id="qrImage" class="qr-image" alt="QR Code">
 
@@ -534,52 +570,57 @@
             </div>
 
             <div class="button-group">
-                <button class="button-secondary" id="downloadQR">📥 QR Code</button>
-                <button class="button-secondary" id="downloadData">📄 JSON Data</button>
-                <button class="button-secondary" id="downloadCert">📜 Certificate</button>
+                <button type="button" class="button-secondary" id="downloadQR">📥 QR Code</button>
+                <button type="button" class="button-secondary" id="downloadData">📄 JSON Data</button>
+                <button type="button" class="button-secondary" id="downloadCert">📜 Certificate</button>
             </div>
-        </div>
-
-        <div class="nav-link">
-            <a href="verify.html">🔍 Verify</a>
-            <a href="dashboard.html">📊 Dashboard</a>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- DEBUG PANEL -->
+    <div class="debug-panel" id="debugPanel">
+        <div><strong>🔍 DEBUG INFO:</strong></div>
+        <div id="debugEmail">Email: <span style="color: #fc8181;">Not entered</span></div>
+        <div id="debugFormData">FormData ready: <span style="color: #fc8181;">No</span></div>
+        <div id="debugStatus">Status: Waiting</div>
+    </div>
+
     <script>
-        const API_URL = 'https://cryptoqr-api.onrender.com';
+        const API_URL = 'https://cryptoqr-api-awkm.onrender.com';
 
         const form = document.getElementById('submitForm');
         const fileInput = document.getElementById('fileInput');
         const fileLabel = document.getElementById('fileLabel');
+        const emailInput = document.getElementById('email');
+        const emailWrapper = document.getElementById('emailWrapper');
         const loading = document.getElementById('loading');
         const result = document.getElementById('result');
         const submitBtn = document.getElementById('submitBtn');
+        const submitBtnText = document.getElementById('submitBtnText');
         const statusMessage = document.getElementById('statusMessage');
-        const loadingText = document.getElementById('loadingText');
+        const emailConfirmation = document.getElementById('emailConfirmation');
+
+        // Debug elements
+        const debugEmail = document.getElementById('debugEmail');
+        const debugFormData = document.getElementById('debugFormData');
+        const debugStatus = document.getElementById('debugStatus');
 
         let currentQRData = null;
         let currentQRImage = null;
         let currentSubmissionData = null;
 
-        // Theme toggle
-        const themeToggle = document.getElementById('themeToggle');
-        const themeIcon = document.getElementById('themeIcon');
-        let theme = localStorage.getItem('cryptoqr-theme') || 'light';
-
-        function applyTheme(t) {
-            document.documentElement.setAttribute('data-theme', t);
-            localStorage.setItem('cryptoqr-theme', t);
-            themeIcon.textContent = t === 'dark' ? '☀️' : '🌙';
-        }
-
-        applyTheme(theme);
-
-        themeToggle.addEventListener('click', () => {
-            theme = theme === 'light' ? 'dark' : 'light';
-            applyTheme(theme);
-            showToast(`${theme === 'dark' ? '🌙 Dark' : '☀️ Light'} mode activated`);
+        // Email field enhancement with DEBUG
+        emailInput.addEventListener('input', (e) => {
+            const email = e.target.value.trim();
+            debugEmail.innerHTML = `Email: <span style="color: ${email ? '#48bb78' : '#fc8181'};">${email || 'Not entered'}</span>`;
+            
+            if (email && e.target.validity.valid) {
+                emailWrapper.classList.add('has-email');
+                submitBtnText.textContent = '🚀 Generate & Email QR Code';
+            } else {
+                emailWrapper.classList.remove('has-email');
+                submitBtnText.textContent = '🚀 Generate QR Code';
+            }
         });
 
         // Toast notification
@@ -616,32 +657,22 @@
             }
         });
 
-        // Animated loading messages
-        let loadingInterval;
-        function startLoadingAnimation() {
-            const messages = ['Hashing file...', 'Generating signature...', 'Creating QR code...'];
-            let i = 0;
-            loadingInterval = setInterval(() => {
-                loadingText.textContent = messages[i++ % messages.length];
-            }, 2000);
-        }
-
-        function stopLoadingAnimation() {
-            clearInterval(loadingInterval);
-            loadingText.textContent = 'Generating cryptographic signature...';
-        }
-
-        // Form submission
+        // Form submission with DETAILED DEBUG
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             hideStatus();
+            emailConfirmation.style.display = 'none';
+
+            console.log('🚀 FORM SUBMISSION STARTED');
+            debugStatus.innerHTML = 'Status: <span style="color: #90cdf4;">Submitting...</span>';
 
             if (!fileInput.files[0]) {
                 showStatus('❌ Please select a file', 'error');
-                showToast('Please select a file', 3000);
+                debugStatus.innerHTML = 'Status: <span style="color: #fc8181;">No file selected</span>';
                 return;
             }
 
+            // Build FormData with DEBUG logging
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
             formData.append('competition_id', document.getElementById('compId').value);
@@ -649,39 +680,41 @@
             const deadline = new Date(document.getElementById('deadline').value).toISOString();
             formData.append('deadline', deadline);
             
-            const email = document.getElementById('email').value;
-            if (email) formData.append('email', email);
+            // CRITICAL: Email handling with DEBUG
+            const email = emailInput.value.trim();
+            console.log('📧 Email Input Value:', email);
+            console.log('📧 Email Input Element:', emailInput);
+            console.log('📧 Email Length:', email.length);
+            console.log('📧 Email Valid:', emailInput.validity.valid);
+            
+            if (email) {
+                formData.append('email', email);
+                console.log('✅ Email ADDED to FormData:', email);
+                debugFormData.innerHTML = `FormData: <span style="color: #48bb78;">Email included (${email})</span>`;
+            } else {
+                console.log('⚠️ Email NOT added (empty or invalid)');
+                debugFormData.innerHTML = `FormData: <span style="color: #fc8181;">No email</span>`;
+            }
+
+            // Log all FormData entries
+            console.log('📦 FormData Contents:');
+            for (let pair of formData.entries()) {
+                console.log(`  ${pair[0]}:`, pair[1]);
+            }
 
             submitBtn.disabled = true;
             loading.classList.add('show');
             result.classList.remove('show');
-            startLoadingAnimation();
-            showStatus('⏳ Processing... (This may take 30-60 seconds on first request)', 'info');
 
             try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 90000);
-
+                debugStatus.innerHTML = 'Status: <span style="color: #90cdf4;">Sending to API...</span>';
+                
                 const response = await fetch(`${API_URL}/api/submit`, {
                     method: 'POST',
-                    body: formData,
-                    signal: controller.signal
+                    body: formData
                 });
 
-                clearTimeout(timeoutId);
-
-                if (response.status === 409) {
-                    const error = await response.json();
-                    showStatus(`⚠️ Duplicate Submission: This file was already submitted.`, 'error');
-                    showToast('Duplicate submission detected', 5000);
-                    return;
-                }
-
-                if (response.status === 413) {
-                    showStatus('❌ File too large (maximum 50MB)', 'error');
-                    showToast('File too large', 3000);
-                    return;
-                }
+                console.log('📡 API Response Status:', response.status);
 
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
@@ -689,32 +722,38 @@
                 }
 
                 const data = await response.json();
+                console.log('📥 API Response Data:', data);
+                console.log('📧 Email Sent Status:', data.email_sent);
+                console.log('📧 Email Message:', data.email_message);
+                
                 currentSubmissionData = data;
-                displayResult(data);
-                showStatus('✅ QR Code generated successfully!', 'success');
-                showToast('✅ Submission created successfully!', 3000);
+                displayResult(data, email);
+                
+                debugStatus.innerHTML = `Status: <span style="color: #48bb78;">Success! Email sent: ${data.email_sent}</span>`;
+                
+                if (email && data.email_sent) {
+                    showStatus('✅ QR Code generated and emailed successfully!', 'success');
+                    showToast('📧 Email sent! Check your inbox', 5000);
+                } else if (email && !data.email_sent) {
+                    showStatus(`✅ QR Code generated! ⚠️ Email: ${data.email_message}`, 'info');
+                    showToast(`⚠️ ${data.email_message}`, 5000);
+                } else {
+                    showStatus('✅ QR Code generated successfully!', 'success');
+                    showToast('✅ Submission created!', 3000);
+                }
 
             } catch (error) {
-                console.error('Submission error:', error);
-                
-                if (error.name === 'AbortError') {
-                    showStatus('❌ Request timeout. The server may be waking up. Please try again.', 'error');
-                    showToast('Request timeout - please retry', 5000);
-                } else if (error.message.includes('Failed to fetch')) {
-                    showStatus('❌ Cannot connect to server. Please check your internet connection.', 'error');
-                    showToast('Connection error', 3000);
-                } else {
-                    showStatus(`❌ Submission failed: ${error.message}`, 'error');
-                    showToast('Submission failed', 3000);
-                }
+                console.error('❌ Submission error:', error);
+                debugStatus.innerHTML = `Status: <span style="color: #fc8181;">Error: ${error.message}</span>`;
+                showStatus(`❌ Submission failed: ${error.message}`, 'error');
+                showToast('Submission failed', 3000);
             } finally {
                 loading.classList.remove('show');
-                stopLoadingAnimation();
                 submitBtn.disabled = false;
             }
         });
 
-        function displayResult(data) {
+        function displayResult(data, submittedEmail) {
             currentQRData = data.qr_data;
             currentQRImage = data.qr_image_base64;
 
@@ -722,6 +761,12 @@
             document.getElementById('submissionId').textContent = data.submission_id;
             document.getElementById('timestamp').textContent = new Date(data.timestamp).toLocaleString();
             document.getElementById('contentHash').textContent = data.content_hash.substring(0, 16) + '...';
+
+            // Show email confirmation if email was sent
+            if (submittedEmail && data.email_sent) {
+                emailConfirmation.style.display = 'block';
+                document.getElementById('confirmedEmail').textContent = submittedEmail;
+            }
 
             result.classList.add('show');
             result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -749,93 +794,13 @@
             showToast('📄 JSON data downloaded', 2000);
         });
 
-        // Download certificate PDF
-        document.getElementById('downloadCert').addEventListener('click', async () => {
-            try {
-                if (typeof window.jspdf === 'undefined') {
-                    showToast('Loading PDF library...', 2000);
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                }
-
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-
-                const primaryColor = [102, 126, 234];
-                const pageWidth = doc.internal.pageSize.getWidth();
-                const pageHeight = doc.internal.pageSize.getHeight();
-
-                // Border
-                doc.setDrawColor(...primaryColor);
-                doc.setLineWidth(2);
-                doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
-
-                // Header
-                doc.setFontSize(32);
-                doc.setTextColor(...primaryColor);
-                doc.setFont(undefined, 'bold');
-                doc.text('Certificate of Submission', pageWidth / 2, 40, { align: 'center' });
-
-                doc.setFontSize(14);
-                doc.setTextColor(100, 100, 100);
-                doc.setFont(undefined, 'normal');
-                doc.text('Cryptographically Verified', pageWidth / 2, 50, { align: 'center' });
-
-                // QR Code
-                const qrSize = 80;
-                const qrX = (pageWidth - qrSize) / 2;
-                doc.addImage(`data:image/png;base64,${currentQRImage}`, 'PNG', qrX, 70, qrSize, qrSize);
-
-                // Details
-                let yPos = 170;
-                doc.setFontSize(12);
-                doc.setTextColor(0, 0, 0);
-
-                const details = [
-                    ['Submission ID', currentSubmissionData.submission_id],
-                    ['Timestamp', new Date(currentSubmissionData.timestamp).toLocaleString()],
-                    ['Content Hash', currentSubmissionData.content_hash.substring(0, 32) + '...']
-                ];
-
-                details.forEach(([label, value]) => {
-                    doc.setFont(undefined, 'bold');
-                    doc.text(label + ':', 40, yPos);
-                    doc.setFont(undefined, 'normal');
-                    doc.text(String(value), 100, yPos);
-                    yPos += 10;
-                });
-
-                // Footer
-                doc.setFontSize(10);
-                doc.setTextColor(150, 150, 150);
-                doc.text('Cryptographically secured using Ed25519 signatures', pageWidth / 2, pageHeight - 30, { align: 'center' });
-                doc.text('CryptoQR v1.0.0 - Built at AlamedaHacks 2026', pageWidth / 2, pageHeight - 20, { align: 'center' });
-
-                doc.save(`cryptoqr-certificate-${currentSubmissionData.submission_id}.pdf`);
-                showToast('📜 Certificate downloaded', 2000);
-            } catch (error) {
-                console.error('PDF generation error:', error);
-                showToast('Error generating PDF', 3000);
-            }
-        });
-
         // Set default deadline
         const defaultDeadline = new Date();
         defaultDeadline.setDate(defaultDeadline.getDate() + 7);
         document.getElementById('deadline').value = defaultDeadline.toISOString().slice(0, 16);
 
-        // Test connection
-        async function testConnection() {
-            try {
-                const response = await fetch(`${API_URL}/`);
-                if (response.ok) {
-                    console.log('✅ Backend connected');
-                }
-            } catch (error) {
-                showStatus('⚠️ Backend is waking up (takes ~30 seconds on first request)', 'info');
-            }
-        }
-
-        testConnection();
+        // Initial debug state
+        debugStatus.innerHTML = 'Status: <span style="color: #718096;">Ready</span>';
     </script>
 </body>
 </html>
