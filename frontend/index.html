@@ -438,7 +438,81 @@
             margin: 4px 0;
         }
 
-                @media (max-width: 640px) {
+        .nav-link {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .nav-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+            padding: 8px 16px;
+            border-radius: 8px;
+        }
+
+        .nav-link a:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s;
+            z-index: 1001;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+        }
+
+        .theme-toggle-icon {
+            font-size: 28px;
+            transition: transform 0.3s;
+        }
+
+        body.dark-mode {
+            --bg-gradient-start: #1a202c;
+            --bg-gradient-end: #2d3748;
+            --card-bg: #2d3748;
+            --text-primary: #f7fafc;
+            --text-secondary: #cbd5e0;
+            --border-color: #4a5568;
+            --input-bg: #1a202c;
+            --input-border: #4a5568;
+            --success-bg: #22543d;
+            --success-border: #48bb78;
+        }
+
+        body.dark-mode .theme-toggle {
+            background: #2d3748;
+        }
+
+        body.dark-mode .email-highlight-banner,
+        body.dark-mode .info-item,
+        body.dark-mode .email-confirmation {
+            background: #1a202c;
+        }
+
+        @media (max-width: 640px) {
             .container {
                 padding: 32px 24px;
             }
@@ -893,6 +967,26 @@
 
         // Initial debug state
         debugStatus.innerHTML = 'Status: <span style="color: #718096;">Ready</span>';
-    </script>
-</body>
-</html>
+
+        // Dark mode toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeIcon.textContent = '☀️';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            
+            if (document.body.classList.contains('dark-mode')) {
+                themeIcon.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeIcon.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            }
+        });
