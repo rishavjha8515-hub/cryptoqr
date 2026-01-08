@@ -231,7 +231,7 @@ class EmailSender:
     </div>
     
     <div style="text-align: center; margin: 30px 0;">
-        <a href="https://cryptoqr-eta.vercel.app/verify.html" class="button">
+        <a href="https://cryptoqr-pi.vercel.app/verify.html" class="button">
             Verify Your Submission
         </a>
     </div>
@@ -245,7 +245,7 @@ class EmailSender:
         <p style="margin-top: 20px;">
             <strong>CryptoQR</strong> - Cryptographic proof for the age of AI<br>
             Built at AlamedaHacks 2026<br>
-            <a href="https://cryptoqr-eta.vercel.app">cryptoqr-eta.vercel.app</a>
+            <a href="https://cryptoqr-pi.vercel.app/">cryptoqr-pi.vercel.app</a>
         </p>
     </div>
 </body>
