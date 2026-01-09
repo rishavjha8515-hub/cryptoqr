@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CryptoQR - Verify</title>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --bg-gradient-start: #667eea;
@@ -432,22 +431,28 @@
             .container {
                 padding: 32px 24px;
             }
+
             h1 {
                 font-size: 24px;
             }
+
             .tabs {
                 flex-direction: column;
                 border-bottom: none;
             }
+
             .tab {
                 border-bottom: 1px solid var(--border-color);
             }
+
             .tab.active {
                 background: rgba(102, 126, 234, 0.1);
             }
+
             .button-group {
                 grid-template-columns: 1fr;
             }
+
             .nav-links {
                 flex-direction: column;
                 gap: 12px;
@@ -455,6 +460,7 @@
         }
     </style>
 </head>
+<script src="dark-mode.js"></script>
 <body>
     <div class="container">
         <div class="header">
@@ -486,22 +492,36 @@
                 <label>QR Data *</label>
                 
                 <div class="tabs">
-                    <button type="button" class="tab active" data-tab="paste">📋 Paste JSON</button>
-                    <button type="button" class="tab" data-tab="upload-json">📄 Upload JSON</button>
-                    <button type="button" class="tab" data-tab="upload-qr">📷 Scan QR Image</button>
+                    <button type="button" class="tab active" data-tab="paste">
+                        📋 Paste JSON
+                    </button>
+                    <button type="button" class="tab" data-tab="upload-json">
+                        📄 Upload JSON
+                    </button>
+                    <button type="button" class="tab" data-tab="upload-qr">
+                        📷 Scan QR Image
+                    </button>
+                    <button type="button" class="tab" data-tab="upload-cert">
+                        📜 Upload Certificate
+                    </button>
                 </div>
 
                 <div class="tab-content active" data-content="paste">
-                    <textarea id="qrDataPaste" placeholder='Paste QR JSON data here'></textarea>
+                    <textarea id="qrDataPaste" placeholder='Paste QR JSON data here, for example:
+{
+  "payload": {...},
+  "signature": "...",
+  "version": "1.0.0"
+}'></textarea>
                 </div>
 
                 <div class="tab-content" data-content="upload-json">
                     <div class="file-input-wrapper">
-                        <input type="file" id="jsonFileInput" accept=".json">
+                        <input type="file" id="jsonFileInput" accept=".json,application/json">
                         <label for="jsonFileInput" class="file-input-label" id="jsonFileLabel">
                             <div class="file-info">
                                 <div class="file-icon">📄</div>
-                                <div class="file-text">Click to select JSON file</div>
+                                <div class="file-text">Click to select JSON file (e.g., cryptoqr-data-XXX.json)</div>
                             </div>
                         </label>
                     </div>
@@ -513,11 +533,26 @@
                         <label for="qrImageInput" class="file-input-label" id="qrImageLabel">
                             <div class="file-info">
                                 <div class="file-icon">📷</div>
-                                <div class="file-text">Click to select QR code image</div>
+                                <div class="file-text">Click to select QR code image (PNG, JPG, etc.)</div>
                             </div>
                         </label>
                     </div>
                     <canvas id="qrCanvas" style="display: none;"></canvas>
+                </div>
+
+                <div class="tab-content" data-content="upload-cert">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="certFileInput" accept=".pdf,application/pdf">
+                        <label for="certFileInput" class="file-input-label" id="certFileLabel">
+                            <div class="file-info">
+                                <div class="file-icon">📜</div>
+                                <div class="file-text">Click to select certificate PDF</div>
+                                <div style="font-size: 12px; color: #e53e3e; margin-top: 8px;">
+                                    Note: Certificate must contain embedded QR data
+                                </div>
+                            </div>
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -544,11 +579,21 @@
         <div class="nav-links">
             <a href="index.html">📝 Submit</a>
             <a href="dashboard.html">📊 Dashboard</a>
+            <a href="batch-verify.html">📦 Batch Verify</a>
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         const API_URL = 'https://cryptoqr-api-awkm.onrender.com';
+
+        const form = document.getElementById('verifyForm');
+        const fileInput = document.getElementById('fileInput');
+        const fileLabel = document.getElementById('fileLabel');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const verifyBtn = document.getElementById('verifyBtn');
+
         let currentVerificationResult = null;
         let currentFile = null;
         let currentQRData = null;
@@ -557,14 +602,18 @@
         // Tab switching
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', () => {
-                currentTab = tab.dataset.tab;
+                const tabName = tab.dataset.tab;
+                currentTab = tabName;
+                
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
+                
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                document.querySelector(`[data-content="${currentTab}"]`).classList.add('active');
+                document.querySelector(`[data-content="${tabName}"]`).classList.add('active');
             });
         });
 
+        // Toast notification
         function showToast(message, duration = 3000) {
             const toast = document.createElement('div');
             toast.className = 'toast';
@@ -573,61 +622,104 @@
             setTimeout(() => toast.remove(), duration);
         }
 
-        // File handlers
-        document.getElementById('fileInput').addEventListener('change', (e) => {
-            if (e.target.files[0]) {
-                document.getElementById('fileLabel').classList.add('has-file');
-                document.getElementById('fileLabel').innerHTML = `
+        // Submission file input handling
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                currentFile = file;
+                fileLabel.classList.add('has-file');
+                fileLabel.innerHTML = `
                     <div class="file-info">
                         <div class="file-icon">📄</div>
                         <div class="file-text">File selected:</div>
-                        <div class="file-name">${e.target.files[0].name}</div>
+                        <div class="file-name">${file.name}</div>
                     </div>
                 `;
             }
         });
 
+        // JSON file upload
         document.getElementById('jsonFileInput').addEventListener('change', async (e) => {
-            if (e.target.files[0]) {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                document.getElementById('jsonFileLabel').classList.add('has-file');
+                document.getElementById('jsonFileLabel').innerHTML = `
+                    <div class="file-info">
+                        <div class="file-icon">✅</div>
+                        <div class="file-text">JSON file loaded:</div>
+                        <div class="file-name">${file.name}</div>
+                    </div>
+                `;
+                
                 try {
-                    const text = await e.target.files[0].text();
+                    const text = await file.text();
                     JSON.parse(text);
                     currentQRData = text;
-                    document.getElementById('jsonFileLabel').classList.add('has-file');
-                    document.getElementById('jsonFileLabel').innerHTML = `
-                        <div class="file-info">
-                            <div class="file-icon">✅</div>
-                            <div class="file-text">JSON loaded:</div>
-                            <div class="file-name">${e.target.files[0].name}</div>
-                        </div>
-                    `;
                     showToast('✅ JSON file loaded', 2000);
                 } catch (error) {
+                    currentQRData = null;
                     showToast('❌ Invalid JSON file', 3000);
                 }
             }
         });
 
+        // QR Image upload and decode
         document.getElementById('qrImageInput').addEventListener('change', async (e) => {
-            if (e.target.files[0]) {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                document.getElementById('qrImageLabel').innerHTML = `
+                    <div class="file-info">
+                        <div class="file-icon">⏳</div>
+                        <div class="file-text">Scanning QR code...</div>
+                        <div class="file-name">${file.name}</div>
+                    </div>
+                `;
+                
                 try {
-                    const qrData = await decodeQRImage(e.target.files[0]);
+                    const qrData = await decodeQRImage(file);
                     currentQRData = qrData;
                     document.getElementById('qrImageLabel').classList.add('has-file');
                     document.getElementById('qrImageLabel').innerHTML = `
                         <div class="file-info">
                             <div class="file-icon">✅</div>
-                            <div class="file-text">QR decoded!</div>
-                            <div class="file-name">${e.target.files[0].name}</div>
+                            <div class="file-text">QR code scanned successfully!</div>
+                            <div class="file-name">${file.name}</div>
                         </div>
                     `;
                     showToast('✅ QR code decoded', 2000);
                 } catch (error) {
+                    currentQRData = null;
+                    document.getElementById('qrImageLabel').innerHTML = `
+                        <div class="file-info">
+                            <div class="file-icon">❌</div>
+                            <div class="file-text">Failed to decode QR code</div>
+                            <div class="file-name" style="color: #e53e3e;">${error.message}</div>
+                        </div>
+                    `;
                     showToast('❌ ' + error.message, 3000);
                 }
             }
         });
 
+        // Certificate upload
+        document.getElementById('certFileInput').addEventListener('change', async (e) => {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                document.getElementById('certFileLabel').innerHTML = `
+                    <div class="file-info">
+                        <div class="file-icon">📜</div>
+                        <div class="file-text">Certificate loaded (manual QR extraction required)</div>
+                        <div class="file-name">${file.name}</div>
+                        <div style="font-size: 12px; color: #e53e3e; margin-top: 8px;">
+                            Please use the QR image or JSON file option instead
+                        </div>
+                    </div>
+                `;
+                showToast('⚠️ Certificate parsing not yet supported. Please extract the QR image or JSON file.', 5000);
+            }
+        });
+
+        // Decode QR code from image
         async function decodeQRImage(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -639,8 +731,10 @@
                         canvas.width = img.width;
                         canvas.height = img.height;
                         ctx.drawImage(img, 0, 0);
+                        
                         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                         const code = jsQR(imageData.data, imageData.width, imageData.height);
+                        
                         if (code) {
                             try {
                                 JSON.parse(code.data);
@@ -649,25 +743,34 @@
                                 reject(new Error('QR code does not contain valid JSON'));
                             }
                         } else {
-                            reject(new Error('No QR code found'));
+                            reject(new Error('No QR code found in image'));
                         }
                     };
+                    img.onerror = () => reject(new Error('Failed to load image'));
                     img.src = e.target.result;
                 };
+                reader.onerror = () => reject(new Error('Failed to read file'));
                 reader.readAsDataURL(file);
             });
         }
 
         // Form submission
-        document.getElementById('verifyForm').addEventListener('submit', async (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            if (!document.getElementById('fileInput').files[0]) {
-                showToast('❌ Please select a file', 3000);
+
+            if (!currentFile) {
+                showToast('❌ Please select a submission file', 3000);
                 return;
             }
 
-            let qrData = currentTab === 'paste' ? document.getElementById('qrDataPaste').value : currentQRData;
+            // Get QR data based on active tab
+            let qrData;
+            if (currentTab === 'paste') {
+                qrData = document.getElementById('qrDataPaste').value.trim();
+            } else {
+                qrData = currentQRData;
+            }
+
             if (!qrData) {
                 showToast('❌ Please provide QR data', 3000);
                 return;
@@ -675,19 +778,18 @@
 
             try {
                 JSON.parse(qrData);
-            } catch {
+            } catch (error) {
                 showToast('❌ Invalid QR data format', 3000);
                 return;
             }
 
-            currentFile = document.getElementById('fileInput').files[0];
             const formData = new FormData();
             formData.append('file', currentFile);
             formData.append('qr_data', qrData);
 
-            document.getElementById('verifyBtn').disabled = true;
-            document.getElementById('loading').classList.add('show');
-            document.getElementById('result').classList.remove('show');
+            verifyBtn.disabled = true;
+            loading.classList.add('show');
+            result.classList.remove('show');
 
             try {
                 const response = await fetch(`${API_URL}/api/verify`, {
@@ -695,50 +797,68 @@
                     body: formData
                 });
 
-                if (!response.ok) throw new Error('Verification failed');
+                if (!response.ok) {
+                    throw new Error('Verification request failed');
+                }
 
                 const data = await response.json();
                 currentVerificationResult = data;
                 displayResult(data);
-                showToast(data.valid ? '✅ Valid' : '❌ Invalid', 3000);
+                showToast(data.valid ? '✅ Valid submission' : '❌ Invalid submission', 3000);
+
             } catch (error) {
-                showToast('❌ Error: ' + error.message, 5000);
+                showToast('❌ Verification error: ' + error.message, 5000);
             } finally {
-                document.getElementById('loading').classList.remove('show');
-                document.getElementById('verifyBtn').disabled = false;
+                loading.classList.remove('show');
+                verifyBtn.disabled = false;
             }
         });
 
         function displayResult(data) {
-            const result = document.getElementById('result');
+            const resultTitle = document.getElementById('resultTitle');
             const checksDiv = document.getElementById('checks');
             const infoDiv = document.getElementById('info');
+            const reasonDiv = document.getElementById('reason');
 
-            result.className = `result ${data.valid ? 'valid' : 'invalid'} show`;
-            document.getElementById('resultTitle').innerHTML = `<span>${data.valid ? '✅' : '❌'}</span><span>${data.valid ? 'Valid' : 'Invalid'} Submission</span>`;
+            if (data.valid) {
+                result.className = 'result valid show';
+                resultTitle.innerHTML = '<span>✅</span><span>Valid Submission</span>';
+            } else {
+                result.className = 'result invalid show';
+                resultTitle.innerHTML = '<span>❌</span><span>Invalid Submission</span>';
+            }
 
             checksDiv.innerHTML = '';
             if (data.checks) {
                 Object.entries(data.checks).forEach(([key, value]) => {
-                    checksDiv.innerHTML += `
-                        <div class="check-item">
-                            <span class="check-label">${formatCheckLabel(key)}</span>
-                            <span class="check-status ${value ? 'pass' : 'fail'}">${value ? '✓ Pass' : '✗ Fail'}</span>
-                        </div>
-                    `;
+                    const checkItem = document.createElement('div');
+                    checkItem.className = 'check-item';
+
+                    const label = document.createElement('span');
+                    label.className = 'check-label';
+                    label.textContent = formatCheckLabel(key);
+
+                    const status = document.createElement('span');
+                    status.className = `check-status ${value ? 'pass' : 'fail'}`;
+                    status.textContent = value ? '✓ Pass' : '✗ Fail';
+
+                    checkItem.appendChild(label);
+                    checkItem.appendChild(status);
+                    checksDiv.appendChild(checkItem);
                 });
             }
 
-            infoDiv.innerHTML = `
-                <div class="info-item"><span class="info-label">Submission ID</span><span class="info-value">${data.submission_id}</span></div>
-                <div class="info-item"><span class="info-label">Timestamp</span><span class="info-value">${new Date(data.timestamp).toLocaleString()}</span></div>
-                <div class="info-item"><span class="info-label">Competition</span><span class="info-value">${data.competition_id}</span></div>
-                <div class="info-item"><span class="info-label">Verified At</span><span class="info-value">${new Date(data.verified_at).toLocaleString()}</span></div>
-            `;
+            infoDiv.innerHTML = '';
+            addInfoRow(infoDiv, 'Submission ID', data.submission_id);
+            addInfoRow(infoDiv, 'Timestamp', new Date(data.timestamp).toLocaleString());
+            addInfoRow(infoDiv, 'Competition', data.competition_id);
+            addInfoRow(infoDiv, 'Verified At', new Date(data.verified_at).toLocaleString());
 
             if (!data.valid && data.reason) {
-                document.getElementById('reason').textContent = '⚠️ ' + data.reason;
-                document.getElementById('reason').style.display = 'block';
+                reasonDiv.textContent = '⚠️ ' + data.reason;
+                reasonDiv.style.display = 'block';
+            } else {
+                reasonDiv.style.display = 'none';
             }
 
             result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -751,97 +871,263 @@
                 'before_deadline': 'Submitted Before Deadline',
                 'timestamp_valid': 'Timestamp Validity'
             };
-            return labels[key] || key;
+            return labels[key] || key.split('_').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+        }
+
+        function addInfoRow(parent, label, value) {
+            const row = document.createElement('div');
+            row.className = 'info-item';
+
+            const labelSpan = document.createElement('span');
+            labelSpan.className = 'info-label';
+            labelSpan.textContent = label;
+
+            const valueSpan = document.createElement('span');
+            valueSpan.className = 'info-value';
+            valueSpan.textContent = value;
+
+            row.appendChild(labelSpan);
+            row.appendChild(valueSpan);
+            parent.appendChild(row);
         }
 
         // Export JSON
         document.getElementById('exportBtn').addEventListener('click', () => {
-            if (!currentVerificationResult) return;
-            const blob = new Blob([JSON.stringify(currentVerificationResult, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.download = `verification-${currentVerificationResult.submission_id}.json`;
-            link.href = url;
-            link.click();
-            URL.revokeObjectURL(url);
-            showToast('📄 JSON exported', 2000);
+            if (!currentVerificationResult) {
+                showToast('❌ No verification result to export', 3000);
+                return;
+            }
+
+            try {
+                const jsonStr = JSON.stringify(currentVerificationResult, null, 2);
+                const blob = new Blob([jsonStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.download = `verification-report-${currentVerificationResult.submission_id}.json`;
+                link.href = url;
+                link.click();
+                URL.revokeObjectURL(url);
+                showToast('📄 JSON report exported', 2000);
+            } catch (error) {
+                showToast('❌ Export failed: ' + error.message, 3000);
+            }
         });
 
-        // Export PDF with Thumbnail
-        document.getElementById('exportPdfBtn').addEventListener('click', async () => {
-            if (!currentVerificationResult) return;
+        // Export PDF
+        document.getElementById('exportPdfBtn').addEventListener('click', () => {
+            if (!currentVerificationResult) {
+                showToast('❌ No verification result to export', 3000);
+                return;
+            }
 
             try {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
+
+                const primaryColor = [102, 126, 234];
+                const successColor = [72, 187, 120];
+                const errorColor = [245, 101, 101];
                 const pageWidth = doc.internal.pageSize.getWidth();
                 const pageHeight = doc.internal.pageSize.getHeight();
 
-                // Thumbnail banner
+                // Professional thumbnail banner
                 doc.setFillColor(26, 32, 44);
                 doc.rect(0, 0, pageWidth, 45, 'F');
                 
+                // Grid pattern overlay
+                doc.setDrawColor(50, 60, 75);
+                doc.setLineWidth(0.1);
+                for (let i = 0; i < pageWidth; i += 10) {
+                    doc.line(i, 0, i, 45);
+                }
+                for (let i = 0; i < 45; i += 10) {
+                    doc.line(0, i, pageWidth, i);
+                }
+                
+                // Title
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(32);
                 doc.setFont(undefined, 'bold');
                 doc.text('CryptoQR', pageWidth / 2, 16, { align: 'center' });
                 
+                // Subtitle
                 doc.setFontSize(10);
                 doc.setFont(undefined, 'normal');
                 doc.text('Cryptographic proof-of-effort verification', pageWidth / 2, 25, { align: 'center' });
                 doc.text('for digital submissions', pageWidth / 2, 31, { align: 'center' });
                 
+                // Tech badges
                 doc.setFontSize(8);
+                doc.setFont(undefined, 'bold');
+                
                 doc.setFillColor(102, 126, 234);
                 doc.roundedRect(55, 36, 25, 4, 1, 1, 'F');
                 doc.text('# SHA-256', 67.5, 39, { align: 'center' });
+                
+                doc.text('✓', 82, 39);
+                
                 doc.roundedRect(90, 36, 25, 4, 1, 1, 'F');
-                doc.text('Ed25519', 102.5, 39, { align: 'center' });
+                doc.text('☺ Ed25519', 102.5, 39, { align: 'center' });
+                
+                doc.setFontSize(7);
+                doc.setFont(undefined, 'normal');
+                doc.setTextColor(200, 210, 220);
+                doc.text('Making real work verifiable in an AI-saturated world', pageWidth / 2, 43, { align: 'center' });
 
-                // Report
+                // Report Header
                 doc.setFontSize(26);
-                doc.setTextColor(102, 126, 234);
+                doc.setTextColor(...primaryColor);
                 doc.setFont(undefined, 'bold');
                 doc.text('Verification Report', pageWidth / 2, 60, { align: 'center' });
 
+                // Status Badge
                 const isValid = currentVerificationResult.valid;
+                const statusY = 72;
+
                 if (isValid) {
-                    doc.setFillColor(72, 187, 120);
-                    doc.roundedRect(70, 72, 70, 14, 3, 3, 'F');
+                    doc.setFillColor(...successColor);
+                    doc.roundedRect(70, statusY, 70, 14, 3, 3, 'F');
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(18);
-                    doc.text('✓ VALID', pageWidth / 2, 81, { align: 'center' });
+                    doc.setFont(undefined, 'bold');
+                    doc.text('✓ VALID SUBMISSION', pageWidth / 2, statusY + 9, { align: 'center' });
                 } else {
-                    doc.setFillColor(245, 101, 101);
-                    doc.roundedRect(70, 72, 70, 14, 3, 3, 'F');
+                    doc.setFillColor(...errorColor);
+                    doc.roundedRect(70, statusY, 70, 14, 3, 3, 'F');
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(18);
-                    doc.text('✗ INVALID', pageWidth / 2, 81, { align: 'center' });
+                    doc.setFont(undefined, 'bold');
+                    doc.text('✗ INVALID SUBMISSION', pageWidth / 2, statusY + 9, { align: 'center' });
                 }
 
-                let yPos = 100;
-                doc.setFontSize(10);
+                // Verification Details Section
+                let yPos = 95;
+                doc.setFontSize(14);
                 doc.setTextColor(0, 0, 0);
+                doc.setFont(undefined, 'bold');
+                doc.text('Verification Details', 20, yPos);
+
+                yPos += 5;
+                doc.setFillColor(247, 250, 252);
+                doc.roundedRect(20, yPos, pageWidth - 40, 40, 3, 3, 'F');
+                doc.setDrawColor(200, 210, 220);
+                doc.setLineWidth(0.5);
+                doc.roundedRect(20, yPos, pageWidth - 40, 40, 3, 3);
+
+                yPos += 8;
+                doc.setFontSize(10);
                 doc.setFont(undefined, 'normal');
 
                 const details = [
-                    ['ID:', currentVerificationResult.submission_id],
-                    ['Time:', new Date(currentVerificationResult.timestamp).toLocaleString()],
-                    ['Competition:', currentVerificationResult.competition_id]
+                    ['Submission ID', currentVerificationResult.submission_id],
+                    ['Timestamp', new Date(currentVerificationResult.timestamp).toLocaleString()],
+                    ['Competition', currentVerificationResult.competition_id],
+                    ['Verified At', new Date(currentVerificationResult.verified_at).toLocaleString()]
                 ];
 
                 details.forEach(([label, value]) => {
+                    doc.setTextColor(100, 100, 100);
                     doc.setFont(undefined, 'bold');
-                    doc.text(label, 20, yPos);
+                    doc.text(label + ':', 25, yPos);
+                    
+                    doc.setTextColor(0, 0, 0);
                     doc.setFont(undefined, 'normal');
-                    doc.text(String(value), 60, yPos);
-                    yPos += 8;
+                    const valueText = doc.splitTextToSize(String(value), 100);
+                    doc.text(valueText, 75, yPos);
+                    yPos += 7 * valueText.length;
                 });
 
-                doc.save(`verification-${currentVerificationResult.submission_id}.pdf`);
-                showToast('📜 PDF exported', 2000);
+                // Security Checks Section
+                yPos += 10;
+                doc.setFontSize(14);
+                doc.setTextColor(0, 0, 0);
+                doc.setFont(undefined, 'bold');
+                doc.text('Security Checks', 20, yPos);
+
+                yPos += 5;
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+
+                const checkLabels = {
+                    'signature_valid': 'Cryptographic Signature',
+                    'content_match': 'Content Hash Match',
+                    'before_deadline': 'Submitted Before Deadline',
+                    'timestamp_valid': 'Timestamp Validity'
+                };
+
+                Object.entries(currentVerificationResult.checks).forEach(([key, passed]) => {
+                    doc.setFillColor(passed ? 240 : 255, passed ? 255 : 245, passed ? 244 : 245);
+                    doc.roundedRect(20, yPos, pageWidth - 40, 10, 2, 2, 'F');
+                    
+                    doc.setDrawColor(passed ? ...successColor : ...errorColor);
+                    doc.setLineWidth(0.5);
+                    doc.roundedRect(20, yPos, pageWidth - 40, 10, 2, 2);
+
+                    doc.setTextColor(0, 0, 0);
+                    doc.text(checkLabels[key] || formatCheckLabel(key), 25, yPos + 6.5);
+
+                    if (passed) {
+                        doc.setTextColor(...successColor);
+                        doc.setFont(undefined, 'bold');
+                        doc.text('✓ Pass', pageWidth - 35, yPos + 6.5);
+                    } else {
+                        doc.setTextColor(...errorColor);
+                        doc.setFont(undefined, 'bold');
+                        doc.text('✗ Fail', pageWidth - 35, yPos + 6.5);
+                    }
+                    doc.setFont(undefined, 'normal');
+
+                    yPos += 12;
+                });
+
+                // Failure reason if invalid
+                if (!isValid && currentVerificationResult.reason) {
+                    yPos += 5;
+                    doc.setFillColor(255, 245, 245);
+                    doc.roundedRect(20, yPos, pageWidth - 40, 20, 3, 3, 'F');
+                    doc.setDrawColor(...errorColor);
+                    doc.setLineWidth(0.5);
+                    doc.roundedRect(20, yPos, pageWidth - 40, 20, 3, 3);
+
+                    doc.setFontSize(11);
+                    doc.setTextColor(...errorColor);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('⚠️ Failure Reason:', 25, yPos + 7);
+                    
+                    doc.setFont(undefined, 'normal');
+                    doc.setFontSize(9);
+                    const reasonText = doc.splitTextToSize(currentVerificationResult.reason, pageWidth - 50);
+                    doc.text(reasonText, 25, yPos + 13);
+                }
+
+                // Footer
+                const footerY = pageHeight - 25;
+                doc.setDrawColor(200, 210, 220);
+                doc.setLineWidth(0.5);
+                doc.line(20, footerY - 5, pageWidth - 20, footerY - 5);
+
+                doc.setFontSize(9);
+                doc.setTextColor(100, 100, 100);
+                doc.setFont(undefined, 'bold');
+                doc.text('Generated by CryptoQR v1.0.0', pageWidth / 2, footerY, { align: 'center' });
+                
+                doc.setFontSize(8);
+                doc.setFont(undefined, 'normal');
+                doc.text('Built at AlamedaHacks 2026 - Cryptographic proof for the age of AI', pageWidth / 2, footerY + 5, { align: 'center' });
+                doc.text(`Report Date: ${new Date().toLocaleString()}`, pageWidth / 2, footerY + 10, { align: 'center' });
+                
+                doc.setFontSize(7);
+                doc.setTextColor(150, 150, 150);
+                doc.text('https://cryptoqr-pi.vercel.app', pageWidth / 2, footerY + 15, { align: 'center' });
+
+                doc.save(`verification-report-${currentVerificationResult.submission_id}.pdf`);
+                showToast('📜 Verification report downloaded!', 2000);
+                
             } catch (error) {
-                showToast('❌ PDF failed: ' + error.message, 3000);
+                console.error('PDF error:', error);
+                showToast('❌ PDF export failed: ' + error.message, 3000);
             }
         });
     </script>
