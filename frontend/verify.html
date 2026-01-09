@@ -929,114 +929,243 @@
         });
 
         // Export PDF (simplified version)
-        document.getElementById('exportPdfBtn').addEventListener('click', async () => {
-            if (!currentVerificationResult) return;
+       // =============================================================================
+// UPDATED VERIFICATION REPORT PDF WITH PROFESSIONAL THUMBNAIL
+// =============================================================================
+// Replace the exportPdfBtn event listener in verify.html with this code
 
-            try {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
+document.getElementById('exportPdfBtn').addEventListener('click', async () => {
+    if (!currentVerificationResult) return;
 
-                const primaryColor = [102, 126, 234];
-                const successColor = [72, 187, 120];
-                const errorColor = [245, 101, 101];
-                const pageWidth = doc.internal.pageSize.getWidth();
-                const pageHeight = doc.internal.pageSize.getHeight();
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
 
-                // Header
-                doc.setFillColor(...primaryColor);
-                doc.rect(0, 0, pageWidth, 40, 'F');
+        const primaryColor = [102, 126, 234];
+        const successColor = [72, 187, 120];
+        const errorColor = [245, 101, 101];
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
 
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(24);
-                doc.setFont(undefined, 'bold');
-                doc.text('🔍 CryptoQR', 20, 20);
+        // =================================================================
+        // PROFESSIONAL THUMBNAIL BANNER
+        // =================================================================
+        
+        // Dark gradient background
+        doc.setFillColor(26, 32, 44);
+        doc.rect(0, 0, pageWidth, 45, 'F');
+        
+        // Grid pattern overlay
+        doc.setDrawColor(50, 60, 75);
+        doc.setLineWidth(0.1);
+        for (let i = 0; i < pageWidth; i += 10) {
+            doc.line(i, 0, i, 45);
+        }
+        for (let i = 0; i < 45; i += 10) {
+            doc.line(0, i, pageWidth, i);
+        }
+        
+        // Title
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(32);
+        doc.setFont(undefined, 'bold');
+        doc.text('CryptoQR', pageWidth / 2, 16, { align: 'center' });
+        
+        // Subtitle
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text('Cryptographic proof-of-effort verification', pageWidth / 2, 25, { align: 'center' });
+        doc.text('for digital submissions', pageWidth / 2, 31, { align: 'center' });
+        
+        // Tech badges
+        doc.setFontSize(8);
+        doc.setFont(undefined, 'bold');
+        
+        doc.setFillColor(102, 126, 234);
+        doc.roundedRect(55, 36, 25, 4, 1, 1, 'F');
+        doc.text('# SHA-256', 67.5, 39, { align: 'center' });
+        
+        doc.text('✓', 82, 39);
+        
+        doc.roundedRect(90, 36, 25, 4, 1, 1, 'F');
+        doc.text('☺ Ed25519', 102.5, 39, { align: 'center' });
+        
+        doc.setFontSize(7);
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(200, 210, 220);
+        doc.text('Making real work verifiable in an AI-saturated world', pageWidth / 2, 43, { align: 'center' });
 
-                doc.setFontSize(12);
-                doc.setFont(undefined, 'normal');
-                doc.text('Verification Report', 20, 30);
+        // =================================================================
+        // VERIFICATION REPORT CONTENT
+        // =================================================================
 
-                // Status
-                const isValid = currentVerificationResult.valid;
-                const statusY = 55;
+        // Report Header
+        doc.setFontSize(26);
+        doc.setTextColor(...primaryColor);
+        doc.setFont(undefined, 'bold');
+        doc.text('Verification Report', pageWidth / 2, 60, { align: 'center' });
 
-                if (isValid) {
-                    doc.setFillColor(...successColor);
-                    doc.roundedRect(20, statusY, 60, 12, 3, 3, 'F');
-                    doc.setTextColor(255, 255, 255);
-                    doc.text('✓ VALID', 30, statusY + 8);
-                } else {
-                    doc.setFillColor(...errorColor);
-                    doc.roundedRect(20, statusY, 60, 12, 3, 3, 'F');
-                    doc.setTextColor(255, 255, 255);
-                    doc.text('✗ INVALID', 28, statusY + 8);
-                }
+        // Status Badge
+        const isValid = currentVerificationResult.valid;
+        const statusY = 72;
 
-                // Details
-                let yPos = 80;
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'bold');
-                doc.text('Verification Details', 20, yPos);
+        if (isValid) {
+            doc.setFillColor(...successColor);
+            doc.roundedRect(70, statusY, 70, 14, 3, 3, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(18);
+            doc.setFont(undefined, 'bold');
+            doc.text('✓ VALID SUBMISSION', pageWidth / 2, statusY + 9, { align: 'center' });
+        } else {
+            doc.setFillColor(...errorColor);
+            doc.roundedRect(70, statusY, 70, 14, 3, 3, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(18);
+            doc.setFont(undefined, 'bold');
+            doc.text('✗ INVALID SUBMISSION', pageWidth / 2, statusY + 9, { align: 'center' });
+        }
 
-                yPos += 10;
-                doc.setFontSize(10);
-                doc.setFont(undefined, 'normal');
+        // Verification Details Section
+        let yPos = 95;
+        doc.setFontSize(14);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont(undefined, 'bold');
+        doc.text('Verification Details', 20, yPos);
 
-                const details = [
-                    ['Submission ID', currentVerificationResult.submission_id],
-                    ['Timestamp', new Date(currentVerificationResult.timestamp).toLocaleString()],
-                    ['Competition', currentVerificationResult.competition_id],
-                    ['Verified At', new Date(currentVerificationResult.verified_at).toLocaleString()]
-                ];
+        // Details background box
+        yPos += 5;
+        doc.setFillColor(247, 250, 252);
+        doc.roundedRect(20, yPos, pageWidth - 40, 40, 3, 3, 'F');
+        doc.setDrawColor(200, 210, 220);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(20, yPos, pageWidth - 40, 40, 3, 3);
 
-                details.forEach(([label, value]) => {
-                    doc.setTextColor(100, 100, 100);
-                    doc.text(label + ':', 20, yPos);
-                    doc.setTextColor(0, 0, 0);
-                    doc.setFont(undefined, 'bold');
-                    doc.text(String(value), 70, yPos);
-                    doc.setFont(undefined, 'normal');
-                    yPos += 7;
-                });
+        yPos += 8;
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
 
-                // Checks
-                yPos += 10;
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'bold');
-                doc.text('Security Checks', 20, yPos);
+        const details = [
+            ['Submission ID', currentVerificationResult.submission_id],
+            ['Timestamp', new Date(currentVerificationResult.timestamp).toLocaleString()],
+            ['Competition', currentVerificationResult.competition_id],
+            ['Verified At', new Date(currentVerificationResult.verified_at).toLocaleString()]
+        ];
 
-                yPos += 10;
-                doc.setFontSize(10);
-                doc.setFont(undefined, 'normal');
-
-                Object.entries(currentVerificationResult.checks).forEach(([key, passed]) => {
-                    doc.setTextColor(0, 0, 0);
-                    doc.text(formatCheckLabel(key), 25, yPos);
-
-                    if (passed) {
-                        doc.setTextColor(...successColor);
-                        doc.text('✓ Pass', 120, yPos);
-                    } else {
-                        doc.setTextColor(...errorColor);
-                        doc.text('✗ Fail', 120, yPos);
-                    }
-
-                    yPos += 7;
-                });
-
-                // Footer
-                doc.setFontSize(8);
-                doc.setTextColor(150, 150, 150);
-                doc.text('Generated by CryptoQR v1.0.0 - AlamedaHacks 2026', 20, pageHeight - 20);
-                doc.text(`Report Date: ${new Date().toLocaleString()}`, 20, pageHeight - 15);
-
-                doc.save(`verification-${currentVerificationResult.submission_id}.pdf`);
-                showToast('📜 PDF report exported', 2000);
-            } catch (error) {
-                console.error('PDF error:', error);
-                showToast('❌ PDF export failed', 3000);
-            }
+        details.forEach(([label, value]) => {
+            doc.setTextColor(100, 100, 100);
+            doc.setFont(undefined, 'bold');
+            doc.text(label + ':', 25, yPos);
+            
+            doc.setTextColor(0, 0, 0);
+            doc.setFont(undefined, 'normal');
+            const valueText = doc.splitTextToSize(String(value), 100);
+            doc.text(valueText, 75, yPos);
+            yPos += 7 * valueText.length;
         });
+
+        // Security Checks Section
+        yPos += 10;
+        doc.setFontSize(14);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont(undefined, 'bold');
+        doc.text('Security Checks', 20, yPos);
+
+        yPos += 5;
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+
+        const checkLabels = {
+            'signature_valid': 'Cryptographic Signature',
+            'content_match': 'Content Hash Match',
+            'before_deadline': 'Submitted Before Deadline',
+            'timestamp_valid': 'Timestamp Validity'
+        };
+
+        Object.entries(currentVerificationResult.checks).forEach(([key, passed]) => {
+            // Check box background
+            doc.setFillColor(passed ? 240 : 255, passed ? 255 : 245, passed ? 244 : 245);
+            doc.roundedRect(20, yPos, pageWidth - 40, 10, 2, 2, 'F');
+            
+            // Border
+            doc.setDrawColor(passed ? ...successColor : ...errorColor);
+            doc.setLineWidth(0.5);
+            doc.roundedRect(20, yPos, pageWidth - 40, 10, 2, 2);
+
+            // Check label
+            doc.setTextColor(0, 0, 0);
+            doc.text(checkLabels[key] || formatCheckLabel(key), 25, yPos + 6.5);
+
+            // Status
+            if (passed) {
+                doc.setTextColor(...successColor);
+                doc.setFont(undefined, 'bold');
+                doc.text('✓ Pass', pageWidth - 35, yPos + 6.5);
+            } else {
+                doc.setTextColor(...errorColor);
+                doc.setFont(undefined, 'bold');
+                doc.text('✗ Fail', pageWidth - 35, yPos + 6.5);
+            }
+            doc.setFont(undefined, 'normal');
+
+            yPos += 12;
+        });
+
+        // Failure reason if invalid
+        if (!isValid && currentVerificationResult.reason) {
+            yPos += 5;
+            doc.setFillColor(255, 245, 245);
+            doc.roundedRect(20, yPos, pageWidth - 40, 20, 3, 3, 'F');
+            doc.setDrawColor(...errorColor);
+            doc.setLineWidth(0.5);
+            doc.roundedRect(20, yPos, pageWidth - 40, 20, 3, 3);
+
+            doc.setFontSize(11);
+            doc.setTextColor(...errorColor);
+            doc.setFont(undefined, 'bold');
+            doc.text('⚠️ Failure Reason:', 25, yPos + 7);
+            
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(9);
+            const reasonText = doc.splitTextToSize(currentVerificationResult.reason, pageWidth - 50);
+            doc.text(reasonText, 25, yPos + 13);
+        }
+
+        // Footer
+        const footerY = pageHeight - 25;
+        doc.setDrawColor(200, 210, 220);
+        doc.setLineWidth(0.5);
+        doc.line(20, footerY - 5, pageWidth - 20, footerY - 5);
+
+        doc.setFontSize(9);
+        doc.setTextColor(100, 100, 100);
+        doc.setFont(undefined, 'bold');
+        doc.text('Generated by CryptoQR v1.0.0', pageWidth / 2, footerY, { align: 'center' });
+        
+        doc.setFontSize(8);
+        doc.setFont(undefined, 'normal');
+        doc.text('Built at AlamedaHacks 2026 - Cryptographic proof for the age of AI', pageWidth / 2, footerY + 5, { align: 'center' });
+        doc.text(`Report Date: ${new Date().toLocaleString()}`, pageWidth / 2, footerY + 10, { align: 'center' });
+        
+        doc.setFontSize(7);
+        doc.setTextColor(150, 150, 150);
+        doc.text('https://cryptoqr-pi.vercel.app', pageWidth / 2, footerY + 15, { align: 'center' });
+
+        // Save PDF
+        doc.save(`verification-report-${currentVerificationResult.submission_id}.pdf`);
+        showToast('📜 Verification report downloaded!', 2000);
+        
+    } catch (error) {
+        console.error('PDF error:', error);
+        showToast('❌ PDF export failed: ' + error.message, 3000);
+    }
+});
+
+// Helper function
+function formatCheckLabel(key) {
+    return key.split('_').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+}
     </script>
 </body>
 </html>
