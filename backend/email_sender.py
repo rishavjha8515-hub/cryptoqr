@@ -1,6 +1,7 @@
 """
 Email Notification System for CryptoQR
 Sends QR code and JSON data to submitter's email using SendGrid
+WITH PROFESSIONAL THUMBNAIL BANNER
 """
 
 import os
@@ -114,11 +115,13 @@ class EmailSender:
             return False
     
     def _create_email_html(self, submission_data: Dict) -> str:
-        """Create beautiful HTML email body"""
+        """Create beautiful HTML email body with professional thumbnail banner"""
         return f"""
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {{
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
@@ -126,127 +129,301 @@ class EmailSender:
             color: #333;
             max-width: 600px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 0;
+            background: #f7fafc;
         }}
+        
+        .email-container {{
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            margin: 20px;
+        }}
+        
+        .thumbnail-banner {{
+            width: 100%;
+            height: auto;
+            display: block;
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+        }}
+        
+        .thumbnail-banner img {{
+            width: 100%;
+            height: auto;
+            max-height: 200px;
+            object-fit: cover;
+            display: block;
+        }}
+        
         .header {{
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 30px;
-            border-radius: 12px;
             text-align: center;
-            margin-bottom: 30px;
         }}
+        
         .logo {{
             font-size: 48px;
             margin-bottom: 10px;
         }}
+        
+        .header h1 {{
+            margin: 0 0 10px 0;
+            font-size: 28px;
+        }}
+        
+        .header p {{
+            margin: 0;
+            opacity: 0.95;
+        }}
+        
         .content {{
-            background: #f7fafc;
             padding: 30px;
+        }}
+        
+        .section {{
+            background: #f7fafc;
+            padding: 20px;
             border-radius: 12px;
             margin-bottom: 20px;
         }}
+        
+        .section h2 {{
+            color: #2d3748;
+            font-size: 18px;
+            margin: 0 0 16px 0;
+            font-weight: 700;
+        }}
+        
         .info-row {{
             display: flex;
             justify-content: space-between;
             padding: 12px 0;
             border-bottom: 1px solid #e2e8f0;
         }}
+        
+        .info-row:last-child {{
+            border-bottom: none;
+        }}
+        
         .info-label {{
             color: #718096;
             font-weight: 600;
+            font-size: 14px;
         }}
+        
         .info-value {{
             color: #2d3748;
             font-family: 'Courier New', monospace;
             font-weight: 600;
+            font-size: 14px;
+            text-align: right;
+            word-break: break-all;
         }}
+        
+        .qr-section {{
+            text-align: center;
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            margin: 20px 0;
+        }}
+        
+        .qr-section h3 {{
+            color: #2d3748;
+            font-size: 18px;
+            margin: 0 0 12px 0;
+        }}
+        
+        .attachments {{
+            background: #ebf8ff;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #4299e1;
+        }}
+        
+        .attachments ul {{
+            margin: 8px 0 0 0;
+            padding-left: 20px;
+        }}
+        
+        .attachments li {{
+            margin: 6px 0;
+            color: #2c5282;
+            font-size: 14px;
+        }}
+        
         .warning {{
             background: #fff5f5;
             border-left: 4px solid #f56565;
-            padding: 15px;
+            padding: 16px;
             margin: 20px 0;
             border-radius: 4px;
         }}
-        .footer {{
-            text-align: center;
-            color: #718096;
-            font-size: 12px;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #e2e8f0;
+        
+        .warning strong {{
+            color: #742a2a;
+            display: block;
+            margin-bottom: 8px;
         }}
+        
+        .warning ul {{
+            margin: 8px 0 0 0;
+            padding-left: 20px;
+            color: #742a2a;
+        }}
+        
+        .warning li {{
+            margin: 4px 0;
+        }}
+        
         .button {{
             display: inline-block;
-            padding: 12px 24px;
+            padding: 14px 28px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             text-decoration: none;
             border-radius: 8px;
             font-weight: 600;
+            font-size: 15px;
             margin: 10px 0;
+        }}
+        
+        .cta-section {{
+            text-align: center;
+            padding: 24px;
+        }}
+        
+        .footer {{
+            text-align: center;
+            color: #718096;
+            font-size: 12px;
+            padding: 24px;
+            border-top: 1px solid #e2e8f0;
+            background: #f7fafc;
+        }}
+        
+        .footer p {{
+            margin: 8px 0;
+        }}
+        
+        .footer strong {{
+            color: #2d3748;
+        }}
+        
+        .footer a {{
+            color: #667eea;
+            text-decoration: none;
+        }}
+        
+        @media only screen and (max-width: 600px) {{
+            .email-container {{
+                margin: 0;
+                border-radius: 0;
+            }}
+            
+            .content {{
+                padding: 20px;
+            }}
+            
+            .info-row {{
+                flex-direction: column;
+                gap: 4px;
+            }}
+            
+            .info-value {{
+                text-align: left;
+                font-size: 13px;
+            }}
         }}
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="logo">🔒</div>
-        <h1>CryptoQR Submission Confirmed</h1>
-        <p>Your cryptographically signed submission is ready</p>
-    </div>
-    
-    <div class="content">
-        <h2>Submission Details</h2>
-        <div class="info-row">
-            <span class="info-label">Submission ID:</span>
-            <span class="info-value">{submission_data['submission_id']}</span>
+    <div class="email-container">
+        <div class="thumbnail-banner">
+            <img src="https://raw.githubusercontent.com/rishavjha8515-hub/cryptoqr/main/assets/cryptoqr-thumbnail.png.jpeg" 
+                 alt="CryptoQR - Cryptographic proof-of-effort verification"
+                 onerror="this.style.display='none'">
         </div>
-        <div class="info-row">
-            <span class="info-label">Timestamp:</span>
-            <span class="info-value">{datetime.fromisoformat(submission_data['timestamp'].replace('Z', '+00:00')).strftime('%B %d, %Y at %I:%M %p UTC')}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Content Hash:</span>
-            <span class="info-value">{submission_data['content_hash'][:16]}...</span>
-        </div>
-    </div>
-    
-    <div style="text-align: center; background: white; padding: 20px; border-radius: 12px; margin: 20px 0;">
-        <h2>Your Cryptographic QR Code</h2>
-        <p>This QR code contains your cryptographic signature and cannot be forged.</p>
-        <p><strong>📥 Attached Files:</strong></p>
-        <ul style="text-align: left; display: inline-block;">
-            <li>🖼️ <code>cryptoqr-{submission_data['submission_id']}.png</code> - QR Code Image</li>
-            <li>📄 <code>cryptoqr-data-{submission_data['submission_id']}.json</code> - Signature Data</li>
-        </ul>
-    </div>
-    
-    <div class="warning">
-        <strong>⚠️ Important:</strong>
-        <ul>
-            <li>Keep both files safe - you'll need them for verification</li>
-            <li>Do not modify the files or they will become invalid</li>
-            <li>The QR code is cryptographically bound to your original file</li>
-        </ul>
-    </div>
-    
-    <div style="text-align: center; margin: 30px 0;">
-        <a href="https://cryptoqr-pi.vercel.app/verify.html" class="button">
-            Verify Your Submission
-        </a>
-    </div>
-    
-    <div class="footer">
-        <p><strong>How to Use:</strong></p>
-        <p>1. Download the attached QR code image and JSON file<br>
-        2. Submit your project with the QR code attached<br>
-        3. Judges can verify authenticity using the verification portal</p>
         
-        <p style="margin-top: 20px;">
-            <strong>CryptoQR</strong> - Cryptographic proof for the age of AI<br>
-            Built at AlamedaHacks 2026<br>
-            <a href="https://cryptoqr-pi.vercel.app/">cryptoqr-pi.vercel.app</a>
-        </p>
+        <div class="header">
+            <div class="logo">🔒</div>
+            <h1>Submission Confirmed</h1>
+            <p>Your cryptographically signed submission is ready</p>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>📋 Submission Details</h2>
+                <div class="info-row">
+                    <span class="info-label">Submission ID:</span>
+                    <span class="info-value">{submission_data['submission_id']}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Timestamp:</span>
+                    <span class="info-value">{datetime.fromisoformat(submission_data['timestamp'].replace('Z', '+00:00')).strftime('%B %d, %Y at %I:%M %p UTC')}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Content Hash:</span>
+                    <span class="info-value">{submission_data['content_hash'][:16]}...</span>
+                </div>
+            </div>
+            
+            <div class="qr-section">
+                <h3>🔐 Your Cryptographic QR Code</h3>
+                <p style="color: #718096; font-size: 14px; margin: 8px 0;">
+                    This QR code contains your cryptographic signature and cannot be forged.
+                </p>
+                
+                <div class="attachments">
+                    <strong style="color: #2c5282;">📥 Attached Files:</strong>
+                    <ul>
+                        <li>🖼️ <code>cryptoqr-{submission_data['submission_id']}.png</code> - QR Code Image</li>
+                        <li>📄 <code>cryptoqr-data-{submission_data['submission_id']}.json</code> - Signature Data</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="warning">
+                <strong>⚠️ Important Security Information:</strong>
+                <ul>
+                    <li>Keep both files safe - you'll need them for verification</li>
+                    <li>Do not modify the files or they will become invalid</li>
+                    <li>The QR code is cryptographically bound to your original file</li>
+                    <li>Any tampering will be detected during verification</li>
+                </ul>
+            </div>
+            
+            <div class="cta-section">
+                <a href="https://cryptoqr-pi.vercel.app/verify.html" class="button">
+                    🔍 Verify Your Submission
+                </a>
+                <p style="color: #718096; font-size: 13px; margin-top: 12px;">
+                    Judges can verify your submission at any time
+                </p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>How to Use Your QR Code:</strong></p>
+            <p>
+                1. Download the attached QR code image and JSON file<br>
+                2. Submit your project with the QR code attached<br>
+                3. Judges can verify authenticity using the verification portal
+            </p>
+            
+            <p style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+                <strong>CryptoQR</strong> - Cryptographic proof for the age of AI<br>
+                Built at AlamedaHacks 2026 by Rishav Anand Kumar Jha<br>
+                <a href="https://cryptoqr-pi.vercel.app/">cryptoqr-pi.vercel.app</a>
+            </p>
+            
+            <p style="margin-top: 12px; font-size: 11px; color: #a0aec0;">
+                Ed25519 signatures • SHA-256 hashing • Zero-trust verification
+            </p>
+        </div>
     </div>
 </body>
 </html>
