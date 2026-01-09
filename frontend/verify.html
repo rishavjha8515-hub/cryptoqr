@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CryptoQR - Verify</title>
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
         :root {
             --bg-gradient-start: #667eea;
@@ -17,11 +16,18 @@
             --input-border: #e2e8f0;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        [data-theme="dark"] {
+            --bg-gradient-start: #1a202c;
+            --bg-gradient-end: #2d3748;
+            --card-bg: #2d3748;
+            --text-primary: #f7fafc;
+            --text-secondary: #cbd5e0;
+            --border-color: #4a5568;
+            --input-bg: #1a202c;
+            --input-border: #4a5568;
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
@@ -31,39 +37,23 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
+            transition: background 0.3s ease;
         }
 
         .container {
             background: var(--card-bg);
             border-radius: 24px;
             padding: 48px;
-            max-width: 700px;
+            max-width: 680px;
             width: 100%;
             box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+            transition: all 0.3s ease;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .logo {
-            font-size: 48px;
-            margin-bottom: 16px;
-        }
-
-        h1 {
-            color: var(--text-primary);
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-
-        .subtitle {
-            color: var(--text-secondary);
-            font-size: 16px;
-            line-height: 1.6;
-        }
+        .header { text-align: center; margin-bottom: 40px; }
+        .logo { font-size: 48px; margin-bottom: 16px; }
+        h1 { color: var(--text-primary); font-size: 32px; font-weight: 700; margin-bottom: 12px; }
+        .subtitle { color: var(--text-secondary); font-size: 16px; }
 
         .helper {
             background: var(--input-bg);
@@ -73,76 +63,44 @@
             font-size: 14px;
             color: var(--text-secondary);
             display: flex;
-            align-items: start;
             gap: 12px;
             border: 1px solid var(--border-color);
         }
 
-        .tabs {
-            display: flex;
+        .form-group { margin-bottom: 24px; }
+        label { display: block; color: var(--text-primary); font-weight: 600; margin-bottom: 8px; font-size: 14px; }
+
+        .proof-method-tabs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
             gap: 8px;
-            margin-bottom: 24px;
-            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 16px;
         }
 
-        .tab {
-            flex: 1;
-            padding: 12px 16px;
-            background: none;
-            border: none;
-            border-bottom: 3px solid transparent;
-            color: var(--text-secondary);
-            font-weight: 600;
-            font-size: 14px;
+        .proof-tab {
+            padding: 12px 8px;
+            background: var(--input-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .tab:hover {
-            color: #667eea;
-            background: rgba(102, 126, 234, 0.05);
-        }
-
-        .tab.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .form-group {
-            margin-bottom: 24px;
-        }
-
-        label {
-            display: block;
-            color: var(--text-primary);
+            font-size: 13px;
             font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 14px;
+            color: var(--text-secondary);
         }
 
-        .file-input-wrapper {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-            width: 100%;
+        .proof-tab:hover { border-color: #667eea; transform: translateY(-2px); }
+        .proof-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
         }
 
-        .file-input-wrapper input[type="file"] {
-            position: absolute;
-            left: -9999px;
-        }
+        .proof-method { display: none; }
+        .proof-method.active { display: block; }
+
+        .file-input-wrapper { position: relative; width: 100%; }
+        .file-input-wrapper input[type="file"] { position: absolute; left: -9999px; }
 
         .file-input-label {
             display: flex;
@@ -156,37 +114,14 @@
             background: var(--input-bg);
         }
 
-        .file-input-label:hover {
-            border-color: #667eea;
-            opacity: 0.8;
-        }
+        .file-input-label:hover { border-color: #667eea; opacity: 0.8; }
+        .file-input-label.has-file { border-color: #48bb78; background: #f0fff4; }
+        [data-theme="dark"] .file-input-label.has-file { background: #22543d; }
 
-        .file-input-label.has-file {
-            border-color: #48bb78;
-            background: #f0fff4;
-        }
-
-        .file-info {
-            text-align: center;
-        }
-
-        .file-icon {
-            font-size: 40px;
-            margin-bottom: 12px;
-        }
-
-        .file-text {
-            color: var(--text-secondary);
-            font-size: 15px;
-            font-weight: 500;
-        }
-
-        .file-name {
-            color: var(--text-primary);
-            font-weight: 600;
-            margin-top: 8px;
-            word-break: break-all;
-        }
+        .file-info { text-align: center; }
+        .file-icon { font-size: 40px; margin-bottom: 12px; }
+        .file-text { color: var(--text-secondary); font-size: 15px; font-weight: 500; }
+        .file-name { color: var(--text-primary); font-weight: 600; margin-top: 8px; word-break: break-all; }
 
         textarea {
             width: 100%;
@@ -197,18 +132,13 @@
             font-family: 'Courier New', monospace;
             resize: vertical;
             min-height: 140px;
-            transition: all 0.2s;
             background: var(--input-bg);
             color: var(--text-primary);
         }
 
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
+        textarea:focus { outline: none; border-color: #667eea; }
 
-        button {
+        button[type="submit"] {
             width: 100%;
             padding: 16px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -218,30 +148,19 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s;
         }
 
-        button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
-        }
+        button[type="submit"]:hover:not(:disabled) { transform: translateY(-2px); }
+        button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 32px;
+        .loading { 
+            display: none; 
+            text-align: center; 
+            padding: 32px; 
             color: var(--text-secondary);
         }
-
-        .loading.show {
-            display: block;
-        }
-
+        .loading.show { display: block; }
         .spinner {
             border: 3px solid var(--border-color);
             border-top: 3px solid #667eea;
@@ -251,150 +170,52 @@
             animation: spin 0.8s linear infinite;
             margin: 0 auto 16px;
         }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .result {
-            display: none;
-            margin-top: 32px;
-            padding: 32px;
-            border-radius: 12px;
-        }
-
-        .result.show {
-            display: block;
-        }
-
-        .result.valid {
-            background: #f0fff4;
-            border: 2px solid #48bb78;
-        }
-
-        .result.invalid {
-            background: #fff5f5;
-            border: 2px solid #f56565;
-        }
-
+        .result { display: none; margin-top: 32px; padding: 32px; border-radius: 12px; }
+        .result.show { display: block; }
+        .result.valid { background: #f0fff4; border: 2px solid #48bb78; }
+        .result.invalid { background: #fff5f5; border: 2px solid #f56565; }
+        
+        [data-theme="dark"] .result.valid { background: #22543d; }
+        [data-theme="dark"] .result.invalid { background: #742a2a; }
+        
         .result h3 {
             font-size: 20px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
             gap: 12px;
         }
-
-        .result.valid h3 {
-            color: #22543d;
-        }
-
-        .result.invalid h3 {
-            color: #742a2a;
-        }
-
-        .checks {
-            display: grid;
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        .check-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 16px;
+        
+        .result.valid h3 { color: #22543d; }
+        .result.invalid h3 { color: #742a2a; }
+        [data-theme="dark"] .result.valid h3 { color: #c6f6d5; }
+        [data-theme="dark"] .result.invalid h3 { color: #fed7d7; }
+        
+        #resultDetails p {
+            padding: 8px 12px;
+            margin: 8px 0;
             background: white;
             border-radius: 8px;
-        }
-
-        .check-label {
             color: var(--text-primary);
             font-size: 14px;
-            font-weight: 500;
         }
-
-        .check-status {
-            font-weight: 700;
-            font-size: 14px;
-        }
-
-        .check-status.pass {
-            color: #38a169;
-        }
-
-        .check-status.fail {
-            color: #e53e3e;
-        }
-
-        .info-grid {
-            display: grid;
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 16px;
-            background: white;
-            border-radius: 8px;
-        }
-
-        .info-label {
-            color: var(--text-secondary);
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .info-value {
-            color: var(--text-primary);
-            font-weight: 600;
-            font-size: 13px;
-            text-align: right;
-        }
-
-        .reason {
-            background: white;
-            padding: 16px;
-            border-radius: 8px;
-            margin-top: 20px;
-            color: #742a2a;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .button-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        .export-btn {
-            background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
-        }
-
-        .export-btn:hover {
-            background: #edf2f7;
+        
+        [data-theme="dark"] #resultDetails p {
+            background: #1a202c;
         }
 
         .nav-links {
             display: flex;
             justify-content: center;
-            gap: 24px;
-            margin-top: 32px;
+            gap: 16px;
+            margin-top: 24px;
             padding-top: 24px;
             border-top: 1px solid var(--border-color);
         }
-
+        
         .nav-links a {
-            display: flex;
-            align-items: center;
-            gap: 8px;
             color: #667eea;
             text-decoration: none;
             font-weight: 600;
@@ -403,10 +224,35 @@
             border-radius: 8px;
             transition: all 0.2s;
         }
-
+        
+        [data-theme="dark"] .nav-links a {
+            color: #90cdf4;
+        }
+        
         .nav-links a:hover {
             background: rgba(102, 126, 234, 0.1);
-            transform: translateY(-2px);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: var(--card-bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            font-size: 28px;
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(180deg);
         }
 
         .toast {
@@ -419,59 +265,42 @@
             box-shadow: 0 8px 24px rgba(0,0,0,0.2);
             z-index: 9999;
             animation: slideIn 0.3s ease;
-            max-width: 400px;
         }
-
+        
+        [data-theme="dark"] .toast {
+            background: #2d3748;
+            color: #f7fafc;
+        }
+        
         @keyframes slideIn {
             from { transform: translateX(400px); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
 
         @media (max-width: 640px) {
-            .container {
-                padding: 32px 24px;
-            }
-
-            h1 {
-                font-size: 24px;
-            }
-
-            .tabs {
-                flex-direction: column;
-                border-bottom: none;
-            }
-
-            .tab {
-                border-bottom: 1px solid var(--border-color);
-            }
-
-            .tab.active {
-                background: rgba(102, 126, 234, 0.1);
-            }
-
-            .button-group {
-                grid-template-columns: 1fr;
-            }
-
-            .nav-links {
-                flex-direction: column;
-                gap: 12px;
-            }
+            .container { padding: 32px 24px; }
+            h1 { font-size: 24px; }
+            .proof-method-tabs { grid-template-columns: repeat(2, 1fr); }
+            .nav-links { flex-direction: column; gap: 8px; }
+            .theme-toggle { width: 50px; height: 50px; font-size: 24px; }
         }
     </style>
 </head>
-<script src="dark-mode.js"></script>
 <body>
+    <div class="theme-toggle" id="themeToggle">
+        <span id="themeIcon">🌙</span>
+    </div>
+
     <div class="container">
         <div class="header">
             <div class="logo">🔍</div>
             <h1>Verify Submission</h1>
-            <p class="subtitle">Check cryptographic authenticity of a submission</p>
+            <p class="subtitle">Check cryptographic authenticity</p>
         </div>
 
         <div class="helper">
-            <span style="font-size: 20px;">💡</span>
-            <span>Choose your verification method below. Upload your file and provide the QR data using any of the available options.</span>
+            <span>💡</span>
+            <span>Upload file & proof (QR image, JSON, certificate, or paste)</span>
         </div>
 
         <form id="verifyForm">
@@ -482,81 +311,69 @@
                     <label for="fileInput" class="file-input-label" id="fileLabel">
                         <div class="file-info">
                             <div class="file-icon">📁</div>
-                            <div class="file-text">Click to select file to verify</div>
+                            <div class="file-text">Click to select file</div>
                         </div>
                     </label>
                 </div>
             </div>
 
             <div class="form-group">
-                <label>QR Data *</label>
+                <label>Verification Proof *</label>
                 
-                <div class="tabs">
-                    <button type="button" class="tab active" data-tab="paste">
-                        📋 Paste JSON
-                    </button>
-                    <button type="button" class="tab" data-tab="upload-json">
-                        📄 Upload JSON
-                    </button>
-                    <button type="button" class="tab" data-tab="upload-qr">
-                        📷 Scan QR Image
-                    </button>
-                    <button type="button" class="tab" data-tab="upload-cert">
-                        📜 Upload Certificate
-                    </button>
+                <div class="proof-method-tabs">
+                    <button type="button" class="proof-tab active" data-method="qr-image">📸 QR Image</button>
+                    <button type="button" class="proof-tab" data-method="json-file">📄 JSON File</button>
+                    <button type="button" class="proof-tab" data-method="certificate">📜 Certificate</button>
+                    <button type="button" class="proof-tab" data-method="paste-json">📝 Paste JSON</button>
                 </div>
-
-                <div class="tab-content active" data-content="paste">
-                    <textarea id="qrDataPaste" placeholder='Paste QR JSON data here, for example:
+                
+                <div class="proof-method active" id="method-qr-image">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="qrImageInput" accept="image/*">
+                        <label for="qrImageInput" class="file-input-label" id="qrImageLabel">
+                            <div class="file-info">
+                                <div class="file-icon">📸</div>
+                                <div class="file-text">Upload QR code image</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="proof-method" id="method-json-file">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="jsonFileInput" accept=".json">
+                        <label for="jsonFileInput" class="file-input-label" id="jsonFileLabel">
+                            <div class="file-info">
+                                <div class="file-icon">📄</div>
+                                <div class="file-text">Upload JSON file</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="proof-method" id="method-certificate">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="certificateInput" accept="image/*,.pdf">
+                        <label for="certificateInput" class="file-input-label" id="certificateLabel">
+                            <div class="file-info">
+                                <div class="file-icon">📜</div>
+                                <div class="file-text">Upload certificate</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="proof-method" id="method-paste-json">
+                    <textarea id="qrData" placeholder='Paste JSON here, for example:
 {
   "payload": {...},
   "signature": "...",
   "version": "1.0.0"
 }'></textarea>
                 </div>
-
-                <div class="tab-content" data-content="upload-json">
-                    <div class="file-input-wrapper">
-                        <input type="file" id="jsonFileInput" accept=".json,application/json">
-                        <label for="jsonFileInput" class="file-input-label" id="jsonFileLabel">
-                            <div class="file-info">
-                                <div class="file-icon">📄</div>
-                                <div class="file-text">Click to select JSON file (e.g., cryptoqr-data-XXX.json)</div>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="tab-content" data-content="upload-qr">
-                    <div class="file-input-wrapper">
-                        <input type="file" id="qrImageInput" accept="image/*">
-                        <label for="qrImageInput" class="file-input-label" id="qrImageLabel">
-                            <div class="file-info">
-                                <div class="file-icon">📷</div>
-                                <div class="file-text">Click to select QR code image (PNG, JPG, etc.)</div>
-                            </div>
-                        </label>
-                    </div>
-                    <canvas id="qrCanvas" style="display: none;"></canvas>
-                </div>
-
-                <div class="tab-content" data-content="upload-cert">
-                    <div class="file-input-wrapper">
-                        <input type="file" id="certFileInput" accept=".pdf,application/pdf">
-                        <label for="certFileInput" class="file-input-label" id="certFileLabel">
-                            <div class="file-info">
-                                <div class="file-icon">📜</div>
-                                <div class="file-text">Click to select certificate PDF</div>
-                                <div style="font-size: 12px; color: #e53e3e; margin-top: 8px;">
-                                    Note: Certificate must contain embedded QR data
-                                </div>
-                            </div>
-                        </label>
-                    </div>
-                </div>
             </div>
 
-            <button type="submit" id="verifyBtn">🔍 Verify Submission</button>
+            <button type="submit">🔍 Verify Submission</button>
         </form>
 
         <div class="loading" id="loading">
@@ -566,69 +383,42 @@
 
         <div class="result" id="result">
             <h3 id="resultTitle"></h3>
-            <div class="checks" id="checks"></div>
-            <div class="info-grid" id="info"></div>
-            <div class="reason" id="reason" style="display: none;"></div>
-
-            <div class="button-group">
-                <button class="export-btn" id="exportBtn">📄 Export JSON</button>
-                <button class="export-btn" id="exportPdfBtn">📜 Export PDF</button>
-            </div>
+            <div id="resultDetails"></div>
         </div>
-
+        
         <div class="nav-links">
-            <a href="index.html">📝 Submit</a>
+            <a href="index.html">← Submit</a>
             <a href="dashboard.html">📊 Dashboard</a>
-            <a href="batch-verify.html">📦 Batch Verify</a>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script>
         const API_URL = 'https://cryptoqr-api-awkm.onrender.com';
-
-        const form = document.getElementById('verifyForm');
-        const fileInput = document.getElementById('fileInput');
-        const fileLabel = document.getElementById('fileLabel');
-        const loading = document.getElementById('loading');
-        const result = document.getElementById('result');
-        const verifyBtn = document.getElementById('verifyBtn');
-
-        let currentVerificationResult = null;
-        let currentFile = null;
-        let currentQRData = null;
-        let currentTab = 'paste';
+        let currentMethod = 'qr-image';
 
         // Tab switching
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                const tabName = tab.dataset.tab;
-                currentTab = tabName;
+        document.querySelectorAll('.proof-tab').forEach(tab => {
+            tab.addEventListener('click', function(e) {
+                e.preventDefault();
+                const method = this.getAttribute('data-method');
+                currentMethod = method;
                 
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
+                document.querySelectorAll('.proof-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
                 
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                document.querySelector(`[data-content="${tabName}"]`).classList.add('active');
+                document.querySelectorAll('.proof-method').forEach(m => m.classList.remove('active'));
+                document.getElementById(`method-${method}`).classList.add('active');
             });
         });
 
-        // Toast notification
-        function showToast(message, duration = 3000) {
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), duration);
-        }
-
-        // Submission file input handling
-        fileInput.addEventListener('change', (e) => {
+        // File input handlers
+        document.getElementById('fileInput').addEventListener('change', function(e) {
             if (e.target.files.length > 0) {
                 const file = e.target.files[0];
-                currentFile = file;
-                fileLabel.classList.add('has-file');
-                fileLabel.innerHTML = `
+                const label = document.getElementById('fileLabel');
+                label.classList.add('has-file');
+                label.innerHTML = `
                     <div class="file-info">
                         <div class="file-icon">📄</div>
                         <div class="file-text">File selected:</div>
@@ -638,110 +428,74 @@
             }
         });
 
-        // JSON file upload
-        document.getElementById('jsonFileInput').addEventListener('change', async (e) => {
+        document.getElementById('qrImageInput').addEventListener('change', function(e) {
             if (e.target.files.length > 0) {
                 const file = e.target.files[0];
-                document.getElementById('jsonFileLabel').classList.add('has-file');
-                document.getElementById('jsonFileLabel').innerHTML = `
+                const label = document.getElementById('qrImageLabel');
+                label.classList.add('has-file');
+                label.innerHTML = `
                     <div class="file-info">
                         <div class="file-icon">✅</div>
-                        <div class="file-text">JSON file loaded:</div>
+                        <div class="file-text">QR image selected:</div>
                         <div class="file-name">${file.name}</div>
                     </div>
                 `;
-                
-                try {
-                    const text = await file.text();
-                    JSON.parse(text);
-                    currentQRData = text;
-                    showToast('✅ JSON file loaded', 2000);
-                } catch (error) {
-                    currentQRData = null;
-                    showToast('❌ Invalid JSON file', 3000);
-                }
             }
         });
 
-        // QR Image upload and decode
-        document.getElementById('qrImageInput').addEventListener('change', async (e) => {
+        document.getElementById('jsonFileInput').addEventListener('change', function(e) {
             if (e.target.files.length > 0) {
                 const file = e.target.files[0];
-                document.getElementById('qrImageLabel').innerHTML = `
+                const label = document.getElementById('jsonFileLabel');
+                label.classList.add('has-file');
+                label.innerHTML = `
                     <div class="file-info">
-                        <div class="file-icon">⏳</div>
-                        <div class="file-text">Scanning QR code...</div>
+                        <div class="file-icon">✅</div>
+                        <div class="file-text">JSON file selected:</div>
                         <div class="file-name">${file.name}</div>
                     </div>
                 `;
-                
-                try {
-                    const qrData = await decodeQRImage(file);
-                    currentQRData = qrData;
-                    document.getElementById('qrImageLabel').classList.add('has-file');
-                    document.getElementById('qrImageLabel').innerHTML = `
-                        <div class="file-info">
-                            <div class="file-icon">✅</div>
-                            <div class="file-text">QR code scanned successfully!</div>
-                            <div class="file-name">${file.name}</div>
-                        </div>
-                    `;
-                    showToast('✅ QR code decoded', 2000);
-                } catch (error) {
-                    currentQRData = null;
-                    document.getElementById('qrImageLabel').innerHTML = `
-                        <div class="file-info">
-                            <div class="file-icon">❌</div>
-                            <div class="file-text">Failed to decode QR code</div>
-                            <div class="file-name" style="color: #e53e3e;">${error.message}</div>
-                        </div>
-                    `;
-                    showToast('❌ ' + error.message, 3000);
-                }
             }
         });
 
-        // Certificate upload
-        document.getElementById('certFileInput').addEventListener('change', async (e) => {
+        document.getElementById('certificateInput').addEventListener('change', function(e) {
             if (e.target.files.length > 0) {
                 const file = e.target.files[0];
-                document.getElementById('certFileLabel').innerHTML = `
+                const label = document.getElementById('certificateLabel');
+                label.classList.add('has-file');
+                label.innerHTML = `
                     <div class="file-info">
-                        <div class="file-icon">📜</div>
-                        <div class="file-text">Certificate loaded (manual QR extraction required)</div>
+                        <div class="file-icon">✅</div>
+                        <div class="file-text">Certificate selected:</div>
                         <div class="file-name">${file.name}</div>
-                        <div style="font-size: 12px; color: #e53e3e; margin-top: 8px;">
-                            Please use the QR image or JSON file option instead
-                        </div>
                     </div>
                 `;
-                showToast('⚠️ Certificate parsing not yet supported. Please extract the QR image or JSON file.', 5000);
             }
         });
 
-        // Decode QR code from image
-        async function decodeQRImage(file) {
+        function showToast(msg, duration = 3000) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), duration);
+        }
+
+        async function decodeQR(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const img = new Image();
                     img.onload = () => {
-                        const canvas = document.getElementById('qrCanvas');
-                        const ctx = canvas.getContext('2d');
+                        const canvas = document.createElement('canvas');
                         canvas.width = img.width;
                         canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0);
-                        
                         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                         const code = jsQR(imageData.data, imageData.width, imageData.height);
-                        
                         if (code) {
-                            try {
-                                JSON.parse(code.data);
-                                resolve(code.data);
-                            } catch {
-                                reject(new Error('QR code does not contain valid JSON'));
-                            }
+                            resolve(code.data);
                         } else {
                             reject(new Error('No QR code found in image'));
                         }
@@ -754,42 +508,64 @@
             });
         }
 
-        // Form submission
-        form.addEventListener('submit', async (e) => {
+        document.getElementById('verifyForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            if (!currentFile) {
-                showToast('❌ Please select a submission file', 3000);
+            
+            const file = document.getElementById('fileInput').files[0];
+            if (!file) {
+                showToast('❌ Please select a submission file');
                 return;
             }
 
-            // Get QR data based on active tab
-            let qrData;
-            if (currentTab === 'paste') {
-                qrData = document.getElementById('qrDataPaste').value.trim();
-            } else {
-                qrData = currentQRData;
-            }
-
-            if (!qrData) {
-                showToast('❌ Please provide QR data', 3000);
-                return;
-            }
-
+            let qrData = null;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
             try {
+                if (currentMethod === 'qr-image') {
+                    const qrFile = document.getElementById('qrImageInput').files[0];
+                    if (!qrFile) {
+                        showToast('❌ Please upload QR code image');
+                        return;
+                    }
+                    showToast('📸 Decoding QR code...', 2000);
+                    qrData = await decodeQR(qrFile);
+                } else if (currentMethod === 'json-file') {
+                    const jsonFile = document.getElementById('jsonFileInput').files[0];
+                    if (!jsonFile) {
+                        showToast('❌ Please upload JSON file');
+                        return;
+                    }
+                    qrData = await jsonFile.text();
+                } else if (currentMethod === 'certificate') {
+                    const certFile = document.getElementById('certificateInput').files[0];
+                    if (!certFile) {
+                        showToast('❌ Please upload certificate');
+                        return;
+                    }
+                    showToast('📜 Scanning certificate...', 2000);
+                    qrData = await decodeQR(certFile);
+                } else {
+                    qrData = document.getElementById('qrData').value.trim();
+                    if (!qrData) {
+                        showToast('❌ Please paste JSON data');
+                        return;
+                    }
+                }
+
+                // Validate JSON
                 JSON.parse(qrData);
             } catch (error) {
-                showToast('❌ Invalid QR data format', 3000);
+                showToast('❌ Invalid proof: ' + error.message, 5000);
                 return;
             }
 
+            submitBtn.disabled = true;
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('result').classList.remove('show');
+            
             const formData = new FormData();
-            formData.append('file', currentFile);
+            formData.append('file', file);
             formData.append('qr_data', qrData);
-
-            verifyBtn.disabled = true;
-            loading.classList.add('show');
-            result.classList.remove('show');
 
             try {
                 const response = await fetch(`${API_URL}/api/verify`, {
@@ -802,333 +578,56 @@
                 }
 
                 const data = await response.json();
-                currentVerificationResult = data;
-                displayResult(data);
-                showToast(data.valid ? '✅ Valid submission' : '❌ Invalid submission', 3000);
-
+                
+                const result = document.getElementById('result');
+                result.className = `result show ${data.valid ? 'valid' : 'invalid'}`;
+                document.getElementById('resultTitle').textContent = data.valid ? '✅ Valid Submission' : '❌ Invalid Submission';
+                
+                let detailsHTML = '';
+                if (data.submission_id) {
+                    detailsHTML += `<p><strong>ID:</strong> ${data.submission_id}</p>`;
+                }
+                if (data.timestamp) {
+                    detailsHTML += `<p><strong>Timestamp:</strong> ${new Date(data.timestamp).toLocaleString()}</p>`;
+                }
+                if (data.competition_id) {
+                    detailsHTML += `<p><strong>Competition:</strong> ${data.competition_id}</p>`;
+                }
+                if (data.reason && !data.valid) {
+                    detailsHTML += `<p style="color: #e53e3e;"><strong>⚠️ Reason:</strong> ${data.reason}</p>`;
+                }
+                
+                document.getElementById('resultDetails').innerHTML = detailsHTML;
+                
+                showToast(data.valid ? '✅ Verification successful!' : '❌ Verification failed!', 3000);
+                
+                // Scroll to result
+                result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             } catch (error) {
                 showToast('❌ Verification error: ' + error.message, 5000);
             } finally {
-                loading.classList.remove('show');
-                verifyBtn.disabled = false;
+                document.getElementById('loading').classList.remove('show');
+                submitBtn.disabled = false;
             }
         });
 
-        function displayResult(data) {
-            const resultTitle = document.getElementById('resultTitle');
-            const checksDiv = document.getElementById('checks');
-            const infoDiv = document.getElementById('info');
-            const reasonDiv = document.getElementById('reason');
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        let theme = localStorage.getItem('cryptoqr-theme') || 'light';
 
-            if (data.valid) {
-                result.className = 'result valid show';
-                resultTitle.innerHTML = '<span>✅</span><span>Valid Submission</span>';
-            } else {
-                result.className = 'result invalid show';
-                resultTitle.innerHTML = '<span>❌</span><span>Invalid Submission</span>';
-            }
-
-            checksDiv.innerHTML = '';
-            if (data.checks) {
-                Object.entries(data.checks).forEach(([key, value]) => {
-                    const checkItem = document.createElement('div');
-                    checkItem.className = 'check-item';
-
-                    const label = document.createElement('span');
-                    label.className = 'check-label';
-                    label.textContent = formatCheckLabel(key);
-
-                    const status = document.createElement('span');
-                    status.className = `check-status ${value ? 'pass' : 'fail'}`;
-                    status.textContent = value ? '✓ Pass' : '✗ Fail';
-
-                    checkItem.appendChild(label);
-                    checkItem.appendChild(status);
-                    checksDiv.appendChild(checkItem);
-                });
-            }
-
-            infoDiv.innerHTML = '';
-            addInfoRow(infoDiv, 'Submission ID', data.submission_id);
-            addInfoRow(infoDiv, 'Timestamp', new Date(data.timestamp).toLocaleString());
-            addInfoRow(infoDiv, 'Competition', data.competition_id);
-            addInfoRow(infoDiv, 'Verified At', new Date(data.verified_at).toLocaleString());
-
-            if (!data.valid && data.reason) {
-                reasonDiv.textContent = '⚠️ ' + data.reason;
-                reasonDiv.style.display = 'block';
-            } else {
-                reasonDiv.style.display = 'none';
-            }
-
-            result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        function applyTheme(t) {
+            document.documentElement.setAttribute('data-theme', t);
+            localStorage.setItem('cryptoqr-theme', t);
+            themeIcon.textContent = t === 'dark' ? '☀️' : '🌙';
         }
 
-        function formatCheckLabel(key) {
-            const labels = {
-                'signature_valid': 'Cryptographic Signature',
-                'content_match': 'Content Hash Match',
-                'before_deadline': 'Submitted Before Deadline',
-                'timestamp_valid': 'Timestamp Validity'
-            };
-            return labels[key] || key.split('_').map(word => 
-                word.charAt(0).toUpperCase() + word.slice(1)
-            ).join(' ');
-        }
+        applyTheme(theme);
 
-        function addInfoRow(parent, label, value) {
-            const row = document.createElement('div');
-            row.className = 'info-item';
-
-            const labelSpan = document.createElement('span');
-            labelSpan.className = 'info-label';
-            labelSpan.textContent = label;
-
-            const valueSpan = document.createElement('span');
-            valueSpan.className = 'info-value';
-            valueSpan.textContent = value;
-
-            row.appendChild(labelSpan);
-            row.appendChild(valueSpan);
-            parent.appendChild(row);
-        }
-
-        // Export JSON
-        document.getElementById('exportBtn').addEventListener('click', () => {
-            if (!currentVerificationResult) {
-                showToast('❌ No verification result to export', 3000);
-                return;
-            }
-
-            try {
-                const jsonStr = JSON.stringify(currentVerificationResult, null, 2);
-                const blob = new Blob([jsonStr], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.download = `verification-report-${currentVerificationResult.submission_id}.json`;
-                link.href = url;
-                link.click();
-                URL.revokeObjectURL(url);
-                showToast('📄 JSON report exported', 2000);
-            } catch (error) {
-                showToast('❌ Export failed: ' + error.message, 3000);
-            }
-        });
-
-        // Export PDF
-        document.getElementById('exportPdfBtn').addEventListener('click', () => {
-            if (!currentVerificationResult) {
-                showToast('❌ No verification result to export', 3000);
-                return;
-            }
-
-            try {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-
-                const primaryColor = [102, 126, 234];
-                const successColor = [72, 187, 120];
-                const errorColor = [245, 101, 101];
-                const pageWidth = doc.internal.pageSize.getWidth();
-                const pageHeight = doc.internal.pageSize.getHeight();
-
-                // Professional thumbnail banner
-                doc.setFillColor(26, 32, 44);
-                doc.rect(0, 0, pageWidth, 45, 'F');
-                
-                // Grid pattern overlay
-                doc.setDrawColor(50, 60, 75);
-                doc.setLineWidth(0.1);
-                for (let i = 0; i < pageWidth; i += 10) {
-                    doc.line(i, 0, i, 45);
-                }
-                for (let i = 0; i < 45; i += 10) {
-                    doc.line(0, i, pageWidth, i);
-                }
-                
-                // Title
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(32);
-                doc.setFont(undefined, 'bold');
-                doc.text('CryptoQR', pageWidth / 2, 16, { align: 'center' });
-                
-                // Subtitle
-                doc.setFontSize(10);
-                doc.setFont(undefined, 'normal');
-                doc.text('Cryptographic proof-of-effort verification', pageWidth / 2, 25, { align: 'center' });
-                doc.text('for digital submissions', pageWidth / 2, 31, { align: 'center' });
-                
-                // Tech badges
-                doc.setFontSize(8);
-                doc.setFont(undefined, 'bold');
-                
-                doc.setFillColor(102, 126, 234);
-                doc.roundedRect(55, 36, 25, 4, 1, 1, 'F');
-                doc.text('# SHA-256', 67.5, 39, { align: 'center' });
-                
-                doc.text('✓', 82, 39);
-                
-                doc.roundedRect(90, 36, 25, 4, 1, 1, 'F');
-                doc.text('☺ Ed25519', 102.5, 39, { align: 'center' });
-                
-                doc.setFontSize(7);
-                doc.setFont(undefined, 'normal');
-                doc.setTextColor(200, 210, 220);
-                doc.text('Making real work verifiable in an AI-saturated world', pageWidth / 2, 43, { align: 'center' });
-
-                // Report Header
-                doc.setFontSize(26);
-                doc.setTextColor(...primaryColor);
-                doc.setFont(undefined, 'bold');
-                doc.text('Verification Report', pageWidth / 2, 60, { align: 'center' });
-
-                // Status Badge
-                const isValid = currentVerificationResult.valid;
-                const statusY = 72;
-
-                if (isValid) {
-                    doc.setFillColor(...successColor);
-                    doc.roundedRect(70, statusY, 70, 14, 3, 3, 'F');
-                    doc.setTextColor(255, 255, 255);
-                    doc.setFontSize(18);
-                    doc.setFont(undefined, 'bold');
-                    doc.text('✓ VALID SUBMISSION', pageWidth / 2, statusY + 9, { align: 'center' });
-                } else {
-                    doc.setFillColor(...errorColor);
-                    doc.roundedRect(70, statusY, 70, 14, 3, 3, 'F');
-                    doc.setTextColor(255, 255, 255);
-                    doc.setFontSize(18);
-                    doc.setFont(undefined, 'bold');
-                    doc.text('✗ INVALID SUBMISSION', pageWidth / 2, statusY + 9, { align: 'center' });
-                }
-
-                // Verification Details Section
-                let yPos = 95;
-                doc.setFontSize(14);
-                doc.setTextColor(0, 0, 0);
-                doc.setFont(undefined, 'bold');
-                doc.text('Verification Details', 20, yPos);
-
-                yPos += 5;
-                doc.setFillColor(247, 250, 252);
-                doc.roundedRect(20, yPos, pageWidth - 40, 40, 3, 3, 'F');
-                doc.setDrawColor(200, 210, 220);
-                doc.setLineWidth(0.5);
-                doc.roundedRect(20, yPos, pageWidth - 40, 40, 3, 3);
-
-                yPos += 8;
-                doc.setFontSize(10);
-                doc.setFont(undefined, 'normal');
-
-                const details = [
-                    ['Submission ID', currentVerificationResult.submission_id],
-                    ['Timestamp', new Date(currentVerificationResult.timestamp).toLocaleString()],
-                    ['Competition', currentVerificationResult.competition_id],
-                    ['Verified At', new Date(currentVerificationResult.verified_at).toLocaleString()]
-                ];
-
-                details.forEach(([label, value]) => {
-                    doc.setTextColor(100, 100, 100);
-                    doc.setFont(undefined, 'bold');
-                    doc.text(label + ':', 25, yPos);
-                    
-                    doc.setTextColor(0, 0, 0);
-                    doc.setFont(undefined, 'normal');
-                    const valueText = doc.splitTextToSize(String(value), 100);
-                    doc.text(valueText, 75, yPos);
-                    yPos += 7 * valueText.length;
-                });
-
-                // Security Checks Section
-                yPos += 10;
-                doc.setFontSize(14);
-                doc.setTextColor(0, 0, 0);
-                doc.setFont(undefined, 'bold');
-                doc.text('Security Checks', 20, yPos);
-
-                yPos += 5;
-                doc.setFontSize(10);
-                doc.setFont(undefined, 'normal');
-
-                const checkLabels = {
-                    'signature_valid': 'Cryptographic Signature',
-                    'content_match': 'Content Hash Match',
-                    'before_deadline': 'Submitted Before Deadline',
-                    'timestamp_valid': 'Timestamp Validity'
-                };
-
-                Object.entries(currentVerificationResult.checks).forEach(([key, passed]) => {
-                    doc.setFillColor(passed ? 240 : 255, passed ? 255 : 245, passed ? 244 : 245);
-                    doc.roundedRect(20, yPos, pageWidth - 40, 10, 2, 2, 'F');
-                    
-                    doc.setDrawColor(passed ? ...successColor : ...errorColor);
-                    doc.setLineWidth(0.5);
-                    doc.roundedRect(20, yPos, pageWidth - 40, 10, 2, 2);
-
-                    doc.setTextColor(0, 0, 0);
-                    doc.text(checkLabels[key] || formatCheckLabel(key), 25, yPos + 6.5);
-
-                    if (passed) {
-                        doc.setTextColor(...successColor);
-                        doc.setFont(undefined, 'bold');
-                        doc.text('✓ Pass', pageWidth - 35, yPos + 6.5);
-                    } else {
-                        doc.setTextColor(...errorColor);
-                        doc.setFont(undefined, 'bold');
-                        doc.text('✗ Fail', pageWidth - 35, yPos + 6.5);
-                    }
-                    doc.setFont(undefined, 'normal');
-
-                    yPos += 12;
-                });
-
-                // Failure reason if invalid
-                if (!isValid && currentVerificationResult.reason) {
-                    yPos += 5;
-                    doc.setFillColor(255, 245, 245);
-                    doc.roundedRect(20, yPos, pageWidth - 40, 20, 3, 3, 'F');
-                    doc.setDrawColor(...errorColor);
-                    doc.setLineWidth(0.5);
-                    doc.roundedRect(20, yPos, pageWidth - 40, 20, 3, 3);
-
-                    doc.setFontSize(11);
-                    doc.setTextColor(...errorColor);
-                    doc.setFont(undefined, 'bold');
-                    doc.text('⚠️ Failure Reason:', 25, yPos + 7);
-                    
-                    doc.setFont(undefined, 'normal');
-                    doc.setFontSize(9);
-                    const reasonText = doc.splitTextToSize(currentVerificationResult.reason, pageWidth - 50);
-                    doc.text(reasonText, 25, yPos + 13);
-                }
-
-                // Footer
-                const footerY = pageHeight - 25;
-                doc.setDrawColor(200, 210, 220);
-                doc.setLineWidth(0.5);
-                doc.line(20, footerY - 5, pageWidth - 20, footerY - 5);
-
-                doc.setFontSize(9);
-                doc.setTextColor(100, 100, 100);
-                doc.setFont(undefined, 'bold');
-                doc.text('Generated by CryptoQR v1.0.0', pageWidth / 2, footerY, { align: 'center' });
-                
-                doc.setFontSize(8);
-                doc.setFont(undefined, 'normal');
-                doc.text('Built at AlamedaHacks 2026 - Cryptographic proof for the age of AI', pageWidth / 2, footerY + 5, { align: 'center' });
-                doc.text(`Report Date: ${new Date().toLocaleString()}`, pageWidth / 2, footerY + 10, { align: 'center' });
-                
-                doc.setFontSize(7);
-                doc.setTextColor(150, 150, 150);
-                doc.text('https://cryptoqr-pi.vercel.app', pageWidth / 2, footerY + 15, { align: 'center' });
-
-                doc.save(`verification-report-${currentVerificationResult.submission_id}.pdf`);
-                showToast('📜 Verification report downloaded!', 2000);
-                
-            } catch (error) {
-                console.error('PDF error:', error);
-                showToast('❌ PDF export failed: ' + error.message, 3000);
-            }
+        themeToggle.addEventListener('click', () => {
+            theme = theme === 'light' ? 'dark' : 'light';
+            applyTheme(theme);
+            showToast(`${theme === 'dark' ? '🌙 Dark' : '☀️ Light'} mode activated`, 2000);
         });
     </script>
 </body>
