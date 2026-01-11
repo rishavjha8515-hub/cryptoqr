@@ -925,7 +925,7 @@
         // =============================================================================
 // UPDATED PDF CERTIFICATE GENERATOR WITH PROFESSIONAL THUMBNAIL
 // =============================================================================
-// Replace your entire downloadCert event listener in index.html with this code
+// Replace the entire downloadCert event listener in index.html (line ~550) with this:
 
 document.getElementById('downloadCert').addEventListener('click', async () => {
     try {
@@ -936,106 +936,78 @@ document.getElementById('downloadCert').addEventListener('click', async () => {
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
 
         // =================================================================
-        // PROFESSIONAL THUMBNAIL BANNER
+        // PROFESSIONAL BANNER HEADER (matching verify.html design)
         // =================================================================
         
-        // Dark gradient background (mimicking your thumbnail)
-        const gradient = doc.internal.newObject();
-        doc.setFillColor(26, 32, 44); // Dark blue-gray
-        doc.rect(0, 0, pageWidth, 50, 'F');
+        // Dark background
+        doc.setFillColor(26, 32, 44);
+        doc.rect(0, 0, pageWidth, 45, 'F');
         
-        // Add subtle grid pattern overlay (optional, for tech feel)
+        // Grid pattern overlay
         doc.setDrawColor(50, 60, 75);
         doc.setLineWidth(0.1);
         for (let i = 0; i < pageWidth; i += 10) {
-            doc.line(i, 0, i, 50);
+            doc.line(i, 0, i, 45);
         }
-        for (let i = 0; i < 50; i += 10) {
+        for (let i = 0; i < 45; i += 10) {
             doc.line(0, i, pageWidth, i);
         }
         
-        // Main title "CryptoQR"
+        // Logo and Title
         doc.setTextColor(255, 255, 255);
-        doc.setFontSize(38);
+        doc.setFontSize(32);
         doc.setFont(undefined, 'bold');
-        doc.text('CryptoQR', pageWidth / 2, 18, { align: 'center' });
+        doc.text('CryptoQR', pageWidth / 2, 16, { align: 'center' });
         
-        // Subtitle line 1
-        doc.setFontSize(11);
+        // Subtitle
+        doc.setFontSize(10);
         doc.setFont(undefined, 'normal');
-        doc.text('Cryptographic proof-of-effort verification', pageWidth / 2, 28, { align: 'center' });
+        doc.text('Cryptographic proof-of-effort verification', pageWidth / 2, 25, { align: 'center' });
+        doc.text('for digital submissions', pageWidth / 2, 31, { align: 'center' });
         
-        // Subtitle line 2
-        doc.text('for digital submissions', pageWidth / 2, 35, { align: 'center' });
-        
-        // Technology badges at bottom
-        doc.setFontSize(9);
-        doc.setFont(undefined, 'bold');
-        
-        // SHA-256 badge
-        doc.setFillColor(102, 126, 234); // Purple-blue
-        doc.roundedRect(50, 42, 28, 5, 1.5, 1.5, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.text('# SHA-256', 64, 45.5, { align: 'center' });
-        
-        // Checkmark
-        doc.text('✓', 84, 45.5);
-        
-        // Ed25519 badge  
-        doc.setFillColor(102, 126, 234);
-        doc.roundedRect(100, 42, 28, 5, 1.5, 1.5, 'F');
-        doc.text('☺ Ed25519', 114, 45.5, { align: 'center' });
-        
-        // Tagline at bottom
+        // Tech badges
         doc.setFontSize(8);
+        doc.setFont(undefined, 'bold');
+        doc.setFillColor(102, 126, 234);
+        doc.roundedRect(55, 36, 25, 4, 1, 1, 'F');
+        doc.text('SHA-256', 67.5, 39, { align: 'center' });
+        doc.roundedRect(90, 36, 25, 4, 1, 1, 'F');
+        doc.text('Ed25519', 102.5, 39, { align: 'center' });
+        
+        doc.setFontSize(7);
         doc.setFont(undefined, 'normal');
         doc.setTextColor(200, 210, 220);
-        doc.text('Making real work verifiable in an AI-saturated world', pageWidth / 2, 48, { align: 'center' });
-        
+        doc.text('Making honest work verifiable in an AI-saturated world', pageWidth / 2, 43, { align: 'center' });
+
         // =================================================================
         // CERTIFICATE CONTENT
         // =================================================================
         
-        // Border (adjusted for header)
-        doc.setDrawColor(102, 126, 234);
-        doc.setLineWidth(2);
-        doc.rect(10, 55, pageWidth - 20, pageHeight - 65);
-        
-        // Inner decorative border
-        doc.setDrawColor(200, 210, 220);
-        doc.setLineWidth(0.5);
-        doc.rect(15, 60, pageWidth - 30, pageHeight - 75);
-        
-        // Certificate Title
-        doc.setFontSize(32);
+        // Main Title
+        doc.setFontSize(26);
         doc.setTextColor(102, 126, 234);
         doc.setFont(undefined, 'bold');
-        doc.text('Certificate of Submission', pageWidth / 2, 78, { align: 'center' });
+        doc.text('Certificate of Submission', pageWidth / 2, 60, { align: 'center' });
 
         // Subtitle
-        doc.setFontSize(14);
+        doc.setFontSize(12);
         doc.setTextColor(100, 100, 100);
         doc.setFont(undefined, 'normal');
-        doc.text('Cryptographically Verified', pageWidth / 2, 88, { align: 'center' });
+        doc.text('Cryptographically Verified Digital Submission', pageWidth / 2, 70, { align: 'center' });
         
         // Decorative line
         doc.setDrawColor(102, 126, 234);
         doc.setLineWidth(0.5);
-        doc.line(60, 92, pageWidth - 60, 92);
+        doc.line(60, 74, pageWidth - 60, 74);
 
-        // QR Code with frame
-        const qrSize = 65;
+        // QR Code Section
+        const qrSize = 70;
         const qrX = (pageWidth - qrSize) / 2;
-        const qrY = 100;
-        
-        // QR Code shadow
-        doc.setFillColor(230, 235, 240);
-        doc.roundedRect(qrX + 1, qrY + 1, qrSize, qrSize, 3, 3, 'F');
+        const qrY = 85;
         
         // QR Code border
         doc.setDrawColor(102, 126, 234);
@@ -1045,100 +1017,90 @@ document.getElementById('downloadCert').addEventListener('click', async () => {
         // QR Code image
         doc.addImage(`data:image/png;base64,${currentQRImage}`, 'PNG', qrX, qrY, qrSize, qrSize);
 
-        // Details section header
-        let yPos = 180;
-        doc.setFontSize(13);
+        // Submission Information Section
+        let yPos = 170;
+        doc.setFontSize(14);
         doc.setTextColor(102, 126, 234);
         doc.setFont(undefined, 'bold');
         doc.text('Submission Information', pageWidth / 2, yPos, { align: 'center' });
-        
+
+        yPos += 5;
+        doc.setFillColor(247, 250, 252);
+        doc.roundedRect(20, yPos, pageWidth - 40, 45, 3, 3, 'F');
+        doc.setDrawColor(200, 210, 220);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(20, yPos, pageWidth - 40, 45, 3, 3);
+
         yPos += 8;
-        
-        // Details with better formatting
         doc.setFontSize(10);
-        doc.setTextColor(0, 0, 0);
+        doc.setFont(undefined, 'normal');
 
         const details = [
-            ['Submission ID:', currentSubmissionData.submission_id],
-            ['Timestamp:', new Date(currentSubmissionData.timestamp).toLocaleString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                timeZoneName: 'short'
-            })],
-            ['Content Hash:', currentSubmissionData.content_hash.substring(0, 40) + '...']
+            ['Submission ID', currentSubmissionData.submission_id],
+            ['Timestamp', new Date(currentSubmissionData.timestamp).toLocaleString()],
+            ['Competition', document.getElementById('compId').value],
+            ['Content Hash', currentSubmissionData.content_hash.substring(0, 40) + '...']
         ];
 
         details.forEach(([label, value]) => {
-            // Label
-            doc.setFont(undefined, 'bold');
             doc.setTextColor(100, 100, 100);
-            doc.text(label, 30, yPos);
+            doc.setFont(undefined, 'bold');
+            doc.text(label + ':', 25, yPos);
             
-            // Value
+            doc.setTextColor(0, 0, 0);
             doc.setFont(undefined, 'normal');
-            doc.setTextColor(50, 50, 50);
-            const valueText = doc.splitTextToSize(String(value), 120);
+            const valueText = doc.splitTextToSize(String(value), 100);
             doc.text(valueText, 75, yPos);
-            
-            yPos += 7 * valueText.length;
+            yPos += 8;
         });
 
-        // Security information box
-        yPos += 5;
-        doc.setFillColor(247, 250, 252);
-        doc.roundedRect(25, yPos, pageWidth - 50, 22, 2, 2, 'F');
+        // Security Features Box
+        yPos += 10;
+        doc.setFillColor(240, 249, 255);
+        doc.roundedRect(20, yPos, pageWidth - 40, 25, 3, 3, 'F');
+        doc.setDrawColor(102, 126, 234);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(20, yPos, pageWidth - 40, 25, 3, 3);
+
+        doc.setFontSize(11);
+        doc.setTextColor(102, 126, 234);
+        doc.setFont(undefined, 'bold');
+        doc.text('Security Features', pageWidth / 2, yPos + 7, { align: 'center' });
         
         doc.setFontSize(9);
-        doc.setTextColor(100, 100, 100);
-        doc.setFont(undefined, 'bold');
-        doc.text('🔒 Security Features', pageWidth / 2, yPos + 6, { align: 'center' });
-        
+        doc.setTextColor(50, 50, 50);
         doc.setFont(undefined, 'normal');
-        doc.setFontSize(8);
-        doc.text('This certificate is cryptographically secured using:', pageWidth / 2, yPos + 11, { align: 'center' });
-        doc.text('Ed25519 digital signatures + SHA-256 content hashing', pageWidth / 2, yPos + 15, { align: 'center' });
-        doc.text('Any modification will be detected during verification', pageWidth / 2, yPos + 19, { align: 'center' });
+        doc.text('This certificate is cryptographically secured using:', pageWidth / 2, yPos + 13, { align: 'center' });
+        doc.text('Ed25519 digital signatures + SHA-256 content hashing', pageWidth / 2, yPos + 17, { align: 'center' });
+        doc.text('Any modification will be detected during verification', pageWidth / 2, yPos + 21, { align: 'center' });
 
-        // Footer section
-        const footerY = pageHeight - 30;
-        
-        // Footer divider
+        // Footer
+        const footerY = pageHeight - 25;
         doc.setDrawColor(200, 210, 220);
         doc.setLineWidth(0.5);
         doc.line(20, footerY - 5, pageWidth - 20, footerY - 5);
-        
-        // Footer content
-        doc.setFontSize(10);
-        doc.setTextColor(102, 126, 234);
+
+        doc.setFontSize(9);
+        doc.setTextColor(100, 100, 100);
         doc.setFont(undefined, 'bold');
-        doc.text('CryptoQR v1.0.0', pageWidth / 2, footerY, { align: 'center' });
+        doc.text('Generated by CryptoQR v1.0.0', pageWidth / 2, footerY, { align: 'center' });
         
         doc.setFontSize(8);
-        doc.setTextColor(120, 120, 120);
         doc.setFont(undefined, 'normal');
-        doc.text('Built at AlamedaHacks 2026 by Rishav Anand Kumar Jha', pageWidth / 2, footerY + 5, { align: 'center' });
-        doc.text('https://cryptoqr-pi.vercel.app', pageWidth / 2, footerY + 10, { align: 'center' });
+        doc.text('Built at AlamedaHacks 2026 - Cryptographic proof for the age of AI', pageWidth / 2, footerY + 5, { align: 'center' });
+        doc.text('Report Date: ' + new Date().toLocaleString(), pageWidth / 2, footerY + 10, { align: 'center' });
         
-        // Generation timestamp
         doc.setFontSize(7);
         doc.setTextColor(150, 150, 150);
-        doc.text(`Certificate generated: ${new Date().toLocaleString()}`, pageWidth / 2, footerY + 15, { align: 'center' });
-        
-        // Verification notice
-        doc.setFontSize(7);
-        doc.setTextColor(100, 100, 100);
-        doc.text('Verify this certificate at: cryptoqr-pi.vercel.app/verify.html', pageWidth / 2, footerY + 19, { align: 'center' });
+        doc.text('https://cryptoqr-pi.vercel.app', pageWidth / 2, footerY + 15, { align: 'center' });
 
-        // Save PDF
+        // Save
         doc.save(`cryptoqr-certificate-${currentSubmissionData.submission_id}.pdf`);
         showToast('📜 Professional certificate downloaded!', 2000);
         
     } catch (error) {
-        console.error('PDF generation error:', error);
-        showToast('❌ Error generating PDF: ' + error.message, 3000);
+        console.error('PDF error:', error);
+        showToast('❌ PDF generation failed: ' + error.message, 3000);
     }
 });
         // Set default deadline
