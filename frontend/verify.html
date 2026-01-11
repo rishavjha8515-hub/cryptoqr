@@ -206,6 +206,39 @@
             background: #1a202c;
         }
 
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .export-btn {
+            padding: 12px;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        [data-theme="dark"] .export-btn {
+            background: #1a202c;
+            color: #90cdf4;
+            border-color: #90cdf4;
+        }
+
+        .export-btn:hover {
+            background: #edf2f7;
+            transform: translateY(-2px);
+        }
+
+        [data-theme="dark"] .export-btn:hover {
+            background: #2d3748;
+        }
+
         .nav-links {
             display: flex;
             justify-content: center;
@@ -282,6 +315,7 @@
             h1 { font-size: 24px; }
             .proof-method-tabs { grid-template-columns: repeat(2, 1fr); }
             .nav-links { flex-direction: column; gap: 8px; }
+            .button-group { grid-template-columns: 1fr; }
             .theme-toggle { width: 50px; height: 50px; font-size: 24px; }
         }
     </style>
@@ -321,19 +355,28 @@
                 <label>Verification Proof *</label>
                 
                 <div class="proof-method-tabs">
-                    <button type="button" class="proof-tab active" data-method="qr-image">📸 QR Image</button>
+                    <button type="button" class="proof-tab active" data-method="paste-json">📝 Paste JSON</button>
+                    <button type="button" class="proof-tab" data-method="qr-image">📸 QR Image</button>
                     <button type="button" class="proof-tab" data-method="json-file">📄 JSON File</button>
                     <button type="button" class="proof-tab" data-method="certificate">📜 Certificate</button>
-                    <button type="button" class="proof-tab" data-method="paste-json">📝 Paste JSON</button>
                 </div>
                 
-                <div class="proof-method active" id="method-qr-image">
+                <div class="proof-method active" id="method-paste-json">
+                    <textarea id="qrData" placeholder='Paste JSON here, for example:
+{
+  "payload": {...},
+  "signature": "...",
+  "version": "1.0.0"
+}'></textarea>
+                </div>
+                
+                <div class="proof-method" id="method-qr-image">
                     <div class="file-input-wrapper">
                         <input type="file" id="qrImageInput" accept="image/*">
                         <label for="qrImageInput" class="file-input-label" id="qrImageLabel">
                             <div class="file-info">
                                 <div class="file-icon">📸</div>
-                                <div class="file-text">Upload QR code image</div>
+                                <div class="file-text">Upload QR code image (PNG/JPG)</div>
                             </div>
                         </label>
                     </div>
@@ -341,11 +384,11 @@
                 
                 <div class="proof-method" id="method-json-file">
                     <div class="file-input-wrapper">
-                        <input type="file" id="jsonFileInput" accept=".json">
+                        <input type="file" id="jsonFileInput" accept=".json,application/json">
                         <label for="jsonFileInput" class="file-input-label" id="jsonFileLabel">
                             <div class="file-info">
                                 <div class="file-icon">📄</div>
-                                <div class="file-text">Upload JSON file</div>
+                                <div class="file-text">Upload JSON file from email</div>
                             </div>
                         </label>
                     </div>
@@ -353,23 +396,15 @@
                 
                 <div class="proof-method" id="method-certificate">
                     <div class="file-input-wrapper">
-                        <input type="file" id="certificateInput" accept="image/*,.pdf">
+                        <input type="file" id="certificateInput" accept="image/*">
                         <label for="certificateInput" class="file-input-label" id="certificateLabel">
                             <div class="file-info">
                                 <div class="file-icon">📜</div>
-                                <div class="file-text">Upload certificate</div>
+                                <div class="file-text">Upload certificate image with QR code</div>
+                                <small style="color: var(--text-secondary); margin-top: 8px; display: block;">Certificate must have visible QR code</small>
                             </div>
                         </label>
                     </div>
-                </div>
-                
-                <div class="proof-method" id="method-paste-json">
-                    <textarea id="qrData" placeholder='Paste JSON here, for example:
-{
-  "payload": {...},
-  "signature": "...",
-  "version": "1.0.0"
-}'></textarea>
                 </div>
             </div>
 
@@ -384,6 +419,11 @@
         <div class="result" id="result">
             <h3 id="resultTitle"></h3>
             <div id="resultDetails"></div>
+            
+            <div class="button-group">
+                <button class="export-btn" id="exportBtn">📄 Export JSON</button>
+                <button class="export-btn" id="exportPdfBtn">📜 Export PDF</button>
+            </div>
         </div>
         
         <div class="nav-links">
@@ -393,9 +433,11 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         const API_URL = 'https://cryptoqr-api-awkm.onrender.com';
-        let currentMethod = 'qr-image';
+        let currentMethod = 'paste-json';
+        let currentVerificationResult = null;
 
         // Tab switching
         document.querySelectorAll('.proof-tab').forEach(tab => {
@@ -474,6 +516,9 @@
         });
 
         function showToast(msg, duration = 3000) {
+            const existing = document.querySelectorAll('.toast');
+            existing.forEach(t => t.remove());
+            
             const toast = document.createElement('div');
             toast.className = 'toast';
             toast.textContent = msg;
@@ -488,16 +533,40 @@
                     const img = new Image();
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
-                        canvas.width = img.width;
-                        canvas.height = img.height;
+                        const maxSize = 2000;
+                        let width = img.width;
+                        let height = img.height;
+                        
+                        // Scale down large images for better QR detection
+                        if (width > maxSize || height > maxSize) {
+                            if (width > height) {
+                                height = (height / width) * maxSize;
+                                width = maxSize;
+                            } else {
+                                width = (width / height) * maxSize;
+                                height = maxSize;
+                            }
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
                         const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0);
-                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                        const code = jsQR(imageData.data, imageData.width, imageData.height);
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        const imageData = ctx.getImageData(0, 0, width, height);
+                        const code = jsQR(imageData.data, width, height, {
+                            inversionAttempts: "dontInvert",
+                        });
+                        
                         if (code) {
-                            resolve(code.data);
+                            try {
+                                JSON.parse(code.data);
+                                resolve(code.data);
+                            } catch {
+                                reject(new Error('QR code does not contain valid JSON'));
+                            }
                         } else {
-                            reject(new Error('No QR code found in image'));
+                            reject(new Error('No QR code found - ensure image is clear and QR code is visible'));
                         }
                     };
                     img.onerror = () => reject(new Error('Failed to load image'));
@@ -539,10 +608,10 @@
                 } else if (currentMethod === 'certificate') {
                     const certFile = document.getElementById('certificateInput').files[0];
                     if (!certFile) {
-                        showToast('❌ Please upload certificate');
+                        showToast('❌ Please upload certificate image');
                         return;
                     }
-                    showToast('📜 Scanning certificate...', 2000);
+                    showToast('📜 Scanning certificate for QR code...', 2000);
                     qrData = await decodeQR(certFile);
                 } else {
                     qrData = document.getElementById('qrData').value.trim();
@@ -555,7 +624,7 @@
                 // Validate JSON
                 JSON.parse(qrData);
             } catch (error) {
-                showToast('❌ Invalid proof: ' + error.message, 5000);
+                showToast('❌ ' + error.message, 5000);
                 return;
             }
 
@@ -578,6 +647,7 @@
                 }
 
                 const data = await response.json();
+                currentVerificationResult = data;
                 
                 const result = document.getElementById('result');
                 result.className = `result show ${data.valid ? 'valid' : 'invalid'}`;
@@ -593,6 +663,9 @@
                 if (data.competition_id) {
                     detailsHTML += `<p><strong>Competition:</strong> ${data.competition_id}</p>`;
                 }
+                if (data.verified_at) {
+                    detailsHTML += `<p><strong>Verified At:</strong> ${new Date(data.verified_at).toLocaleString()}</p>`;
+                }
                 if (data.reason && !data.valid) {
                     detailsHTML += `<p style="color: #e53e3e;"><strong>⚠️ Reason:</strong> ${data.reason}</p>`;
                 }
@@ -601,13 +674,107 @@
                 
                 showToast(data.valid ? '✅ Verification successful!' : '❌ Verification failed!', 3000);
                 
-                // Scroll to result
                 result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             } catch (error) {
                 showToast('❌ Verification error: ' + error.message, 5000);
             } finally {
                 document.getElementById('loading').classList.remove('show');
                 submitBtn.disabled = false;
+            }
+        });
+
+        // Export JSON
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            if (!currentVerificationResult) {
+                showToast('❌ No verification result to export');
+                return;
+            }
+
+            try {
+                const jsonStr = JSON.stringify(currentVerificationResult, null, 2);
+                const blob = new Blob([jsonStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.download = `verification-${currentVerificationResult.submission_id}.json`;
+                link.href = url;
+                link.click();
+                URL.revokeObjectURL(url);
+                showToast('📄 JSON exported!', 2000);
+            } catch (error) {
+                showToast('❌ Export failed', 3000);
+            }
+        });
+
+        // Export PDF
+        document.getElementById('exportPdfBtn').addEventListener('click', () => {
+            if (!currentVerificationResult) {
+                showToast('❌ No verification result to export');
+                return;
+            }
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const data = currentVerificationResult;
+
+                // Header
+                doc.setFillColor(102, 126, 234);
+                doc.rect(0, 0, 210, 40, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(24);
+                doc.text('🔍 CryptoQR', 105, 20, { align: 'center' });
+                doc.setFontSize(12);
+                doc.text('Verification Report', 105, 30, { align: 'center' });
+
+                // Status
+                const isValid = data.valid;
+                doc.setFontSize(18);
+                if (isValid) {
+                    doc.setFillColor(72, 187, 120);
+                    doc.roundedRect(60, 50, 90, 15, 3, 3, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.text('✅ VALID SUBMISSION', 105, 60, { align: 'center' });
+                } else {
+                    doc.setFillColor(245, 101, 101);
+                    doc.roundedRect(60, 50, 90, 15, 3, 3, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.text('❌ INVALID SUBMISSION', 105, 60, { align: 'center' });
+                }
+
+                // Details
+                let y = 80;
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(14);
+                doc.text('Verification Details', 20, y);
+                y += 10;
+
+                doc.setFontSize(10);
+                const details = [
+                    ['ID:', data.submission_id],
+                    ['Timestamp:', new Date(data.timestamp).toLocaleString()],
+                    ['Competition:', data.competition_id],
+                    ['Verified:', new Date(data.verified_at).toLocaleString()]
+                ];
+
+                details.forEach(([label, value]) => {
+                    doc.setFont(undefined, 'bold');
+                    doc.text(label, 20, y);
+                    doc.setFont(undefined, 'normal');
+                    doc.text(String(value), 60, y);
+                    y += 7;
+                });
+
+                // Footer
+                doc.setFontSize(8);
+                doc.setTextColor(150, 150, 150);
+                doc.text('Generated by CryptoQR v1.0.0 - AlamedaHacks 2026', 105, 280, { align: 'center' });
+                doc.text(new Date().toLocaleString(), 105, 285, { align: 'center' });
+
+                doc.save(`verification-${data.submission_id}.pdf`);
+                showToast('📜 PDF exported!', 2000);
+            } catch (error) {
+                console.error('PDF error:', error);
+                showToast('❌ PDF export failed', 3000);
             }
         });
 
