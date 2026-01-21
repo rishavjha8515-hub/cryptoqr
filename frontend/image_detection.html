@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Verification - CryptoQR</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            color: #718096;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        
+        .upload-area {
+            border: 3px dashed #cbd5e0;
+            border-radius: 16px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f7fafc;
+        }
+        
+        .upload-area:hover {
+            border-color: #f5576c;
+            background: #fff5f7;
+        }
+        
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .options {
+            margin: 2rem 0;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .option-group label {
+            display: block;
+            color: #2d3748;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(245, 87, 108, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .preview-area {
+            margin-top: 2rem;
+            display: none;
+        }
+        
+        .preview-area.active {
+            display: block;
+        }
+        
+        .image-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .image-box {
+            text-align: center;
+        }
+        
+        .image-box h3 {
+            margin-bottom: 1rem;
+            color: #2d3748;
+        }
+        
+        .image-box img {
+            max-width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .download-btn {
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: #48bb78;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .download-btn:hover {
+            background: #38a169;
+        }
+        
+        .info-box {
+            background: #edf2f7;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #cbd5e0;
+        }
+        
+        code {
+            background: #2d3748;
+            color: #48bb78;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖼️ Image Verification</h1>
+        <p class="subtitle">Add cryptographic proof to your images - prevent deepfakes</p>
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <h2>Drop image here or click to upload</h2>
+            <p style="color: #718096; margin-top: 0.5rem;">Supports: JPG, PNG, WebP (max 10MB)</p>
+        </div>
+        
+        <input type="file" id="fileInput" accept="image/*">
+        
+        <div class="options">
+            <div class="option-group">
+                <label for="qr-position">QR Code Position</label>
+                <select id="qr-position">
+                    <option value="bottom-right">Bottom Right</option>
+                    <option value="bottom-left">Bottom Left</option>
+                    <option value="top-right">Top Right</option>
+                    <option value="top-left">Top Left</option>
+                </select>
+            </div>
+        </div>
+        
+        <button class="btn" id="signBtn" disabled>
+            🔐 Sign Image with CryptoQR
+        </button>
+        
+        <div class="preview-area" id="previewArea">
+            <div class="image-comparison">
+                <div class="image-box">
+                    <h3>Original Image</h3>
+                    <img id="originalImage" src="" alt="Original">
+                </div>
+                <div class="image-box">
+                    <h3>Signed Image (with QR)</h3>
+                    <img id="signedImage" src="" alt="Signed">
+                    <button class="download-btn" onclick="downloadSignedImage()">⬇️ Download</button>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <h3 style="margin-bottom: 1rem;">Verification Details</h3>
+                <div class="info-row">
+                    <span><strong>Content Hash:</strong></span>
+                    <span><code id="imageHash">-</code></span>
+                </div>
+                <div class="info-row">
+                    <span><strong>Timestamp:</strong></span>
+                    <span id="imageTimestamp">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'https://cryptoqr-api-awkm.onrender.com';
+        let selectedFile = null;
+        let signedImageData = null;
+        
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const signBtn = document.getElementById('signBtn');
+        
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#f5576c';
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = '#cbd5e0';
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#cbd5e0';
+            handleFile(e.dataTransfer.files[0]);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            handleFile(e.target.files[0]);
+        });
+        
+        function handleFile(file) {
+            if (!file || !file.type.startsWith('image/')) {
+                alert('Please select an image file');
+                return;
+            }
+            
+            selectedFile = file;
+            signBtn.disabled = false;
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('originalImage').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            
+            uploadArea.innerHTML = `
+                <div class="upload-icon">✅</div>
+                <h2>${file.name}</h2>
+                <p style="color: #718096; margin-top: 0.5rem;">${(file.size / 1024).toFixed(1)} KB</p>
+            `;
+        }
+        
+        signBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+            
+            signBtn.disabled = true;
+            signBtn.textContent = '🔄 Processing...';
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                formData.append('position', document.getElementById('qr-position').value);
+                
+                const response = await fetch(`${API_BASE}/api/sign-image`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    signedImageData = data.image_data;
+                    document.getElementById('signedImage').src = 'data:image/png;base64,' + data.image_data;
+                    document.getElementById('imageHash').textContent = data.hash.substring(0, 16) + '...';
+                    document.getElementById('imageTimestamp').textContent = new Date(data.timestamp).toLocaleString();
+                    document.getElementById('previewArea').classList.add('active');
+                }
+                
+                signBtn.textContent = '✅ Signed!';
+                setTimeout(() => {
+                    signBtn.textContent = '🔐 Sign Image with CryptoQR';
+                    signBtn.disabled = false;
+                }, 2000);
+                
+            } catch (error) {
+                alert('Error signing image: ' + error.message);
+                signBtn.textContent = '🔐 Sign Image with CryptoQR';
+                signBtn.disabled = false;
+            }
+        });
+        
+        function downloadSignedImage() {
+            if (!signedImageData) return;
+            
+            const link = document.createElement('a');
+            link.href = 'data:image/png;base64,' + signedImageData;
+            link.download = 'cryptoqr-signed-' + Date.now() + '.png';
+            link.click();
+        }
+    </script>
+</body>
+</html>

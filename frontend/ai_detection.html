@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Content Detection - CryptoQR</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            color: #718096;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .tab {
+            padding: 1rem 2rem;
+            border: none;
+            background: none;
+            color: #718096;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 1.5rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            color: #2d3748;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .result-box {
+            margin-top: 2rem;
+            padding: 2rem;
+            border-radius: 12px;
+            display: none;
+        }
+        
+        .result-box.success {
+            background: #f0fdf4;
+            border: 2px solid #22c55e;
+        }
+        
+        .result-box.warning {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+        }
+        
+        .result-box.error {
+            background: #fef2f2;
+            border: 2px solid #ef4444;
+        }
+        
+        .result-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        code {
+            background: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI Content Detection</h1>
+        <p class="subtitle">Sign and verify AI-generated content with cryptographic proof</p>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('sign')">Sign AI Content</button>
+            <button class="tab" onclick="switchTab('verify')">Verify Content</button>
+        </div>
+        
+        <!-- SIGN TAB -->
+        <div id="sign-tab" class="tab-content active">
+            <div class="input-group">
+                <label for="ai-content">AI-Generated Content</label>
+                <textarea id="ai-content" placeholder="Paste AI-generated text here..."></textarea>
+            </div>
+            
+            <div class="input-group">
+                <label for="model-name">AI Model Used</label>
+                <input type="text" id="model-name" value="claude-sonnet-4.5-20250514" />
+            </div>
+            
+            <button class="btn" onclick="signContent()">
+                🔐 Generate Cryptographic Signature
+            </button>
+            
+            <div id="sign-result" class="result-box"></div>
+        </div>
+        
+        <!-- VERIFY TAB -->
+        <div id="verify-tab" class="tab-content">
+            <div class="input-group">
+                <label for="verify-content">Content to Verify</label>
+                <textarea id="verify-content" placeholder="Paste signed content here (including signature block)..."></textarea>
+            </div>
+            
+            <button class="btn" onclick="verifyContent()">
+                ✅ Verify Authenticity
+            </button>
+            
+            <div id="verify-result" class="result-box"></div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'https://cryptoqr-api-awkm.onrender.com';
+        
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tab + '-tab').classList.add('active');
+        }
+        
+        async function signContent() {
+            const content = document.getElementById('ai-content').value;
+            const modelName = document.getElementById('model-name').value;
+            const resultBox = document.getElementById('sign-result');
+            
+            if (!content.trim()) {
+                alert('Please enter content to sign');
+                return;
+            }
+            
+            try {
+                const formData = new FormData();
+                formData.append('content', content);
+                formData.append('model_name', modelName);
+                
+                const response = await fetch(`${API_BASE}/api/sign-ai-text`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                resultBox.className = 'result-box success';
+                resultBox.style.display = 'block';
+                resultBox.innerHTML = `
+                    <div class="result-icon">✅</div>
+                    <div class="result-title">Content Signed Successfully</div>
+                    <div class="result-details">
+                        <div class="detail-row">
+                            <span><strong>Model:</strong></span>
+                            <span>${modelName}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span><strong>Timestamp:</strong></span>
+                            <span>${data.timestamp}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span><strong>Content Hash:</strong></span>
+                            <span><code>${data.hash.substring(0, 16)}...</code></span>
+                        </div>
+                        <p style="margin-top: 1rem;">
+                            <strong>Signed content (copy this):</strong>
+                        </p>
+                        <textarea readonly style="margin-top: 0.5rem; min-height: 200px;">${data.signed_text}</textarea>
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultBox.className = 'result-box error';
+                resultBox.style.display = 'block';
+                resultBox.innerHTML = `
+                    <div class="result-icon">❌</div>
+                    <div class="result-title">Signing Failed</div>
+                    <div>${error.message}</div>
+                `;
+            }
+        }
+        
+        async function verifyContent() {
+            const content = document.getElementById('verify-content').value;
+            const resultBox = document.getElementById('verify-result');
+            
+            if (!content.trim()) {
+                alert('Please enter content to verify');
+                return;
+            }
+            
+            try {
+                const formData = new FormData();
+                formData.append('signed_text', content);
+                
+                const response = await fetch(`${API_BASE}/api/verify-ai-text`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.is_ai_generated) {
+                    resultBox.className = 'result-box success';
+                    resultBox.innerHTML = `
+                        <div class="result-icon">🤖</div>
+                        <div class="result-title">AI-Generated Content Verified</div>
+                        <div class="result-details">
+                            <div class="detail-row">
+                                <span><strong>Status:</strong></span>
+                                <span>${data.message}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span><strong>Model:</strong></span>
+                                <span>${data.model}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span><strong>Generated:</strong></span>
+                                <span>${data.timestamp}</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultBox.className = 'result-box warning';
+                    resultBox.innerHTML = `
+                        <div class="result-icon">⚠️</div>
+                        <div class="result-title">No AI Signature Found</div>
+                        <div>This content does not contain a CryptoQR AI verification signature.</div>
+                    `;
+                }
+                
+                resultBox.style.display = 'block';
+                
+            } catch (error) {
+                resultBox.className = 'result-box error';
+                resultBox.style.display = 'block';
+                resultBox.innerHTML = `
+                    <div class="result-icon">❌</div>
+                    <div class="result-title">Verification Failed</div>
+                    <div>${error.message}</div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
