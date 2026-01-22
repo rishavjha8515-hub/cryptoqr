@@ -22,7 +22,9 @@ from io import BytesIO
 from crypto_core import CryptoQRCore, VerificationResult
 from email_sender import send_submission_notification, email_sender
 import re
-from PIL import Image
+from PIL import Imag
+import re
+from typing import List
 
 
 # Initialize FastAPI app
@@ -775,7 +777,256 @@ async def verify_image(file: UploadFile = File(...)):
     except Exception as e:
         print(f"[ERROR] Image verification failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+def detect_ai_patterns(text: str) -> dict:
+    """
+    Analyze text for AI-generated patterns.
+    This is a basic implementation - real AI detection would use ML models.
+    """
+    ai_indicators = 0
+    total_checks = 0
+    reasons = []
+    
+    # Check 1: Overly formal language
+    formal_phrases = [
+        "It is important to note", "Furthermore", "Moreover", "Additionally",
+        "In conclusion", "To summarize", "It should be noted", "One must consider",
+        "It is worth mentioning", "As previously mentioned"
+    ]
+    total_checks += 1
+    formal_count = sum(1 for phrase in formal_phrases if phrase.lower() in text.lower())
+    if formal_count >= 2:
+        ai_indicators += 1
+        reasons.append(f"High formal phrase density ({formal_count} instances)")
+    
+    # Check 2: Perfect grammar (no typos/mistakes)
+    total_checks += 1
+    has_typos = bool(re.search(r'\b\w+\s+\1\b', text))  # Repeated words
+    has_incomplete = '...' in text or text.count(',') > len(text.split()) / 15
+    if not has_typos and not has_incomplete and len(text) > 200:
+        ai_indicators += 0.5
+        reasons.append("Unusually perfect grammar for length")
+    
+    # Check 3: List structure (AI loves lists)
+    total_checks += 1
+    list_markers = text.count('\n-') + text.count('\n*') + text.count('\n1.')
+    if list_markers >= 3:
+        ai_indicators += 1
+        reasons.append(f"Heavy use of lists ({list_markers} list items)")
+    
+    # Check 4: Neutral/balanced tone (no strong opinions)
+    total_checks += 1
+    emotional_words = ['hate', 'love', 'amazing', 'terrible', 'awful', 'fantastic']
+    emotion_count = sum(1 for word in emotional_words if word in text.lower())
+    if emotion_count == 0 and len(text) > 300:
+        ai_indicators += 0.5
+        reasons.append("Lack of emotional language")
+    
+    # Check 5: Conclusion-heavy (AI always wraps up)
+    total_checks += 1
+    conclusion_words = ['in conclusion', 'to sum up', 'in summary', 'overall', 'ultimately']
+    if any(phrase in text.lower() for phrase in conclusion_words):
+        ai_indicators += 1
+        reasons.append("Contains explicit conclusion markers")
+    
+    # Check 6: Length and structure
+    total_checks += 1
+    paragraphs = [p for p in text.split('\n\n') if len(p.strip()) > 50]
+    if len(paragraphs) >= 3:
+        avg_para_length = sum(len(p) for p in paragraphs) / len(paragraphs)
+        if 150 < avg_para_length < 400:  # AI likes consistent paragraph lengths
+            ai_indicators += 0.5
+            reasons.append("Suspiciously consistent paragraph structure")
+    
+    confidence = min(ai_indicators / total_checks * 100, 95)  # Cap at 95%
+    
+    return {
+        "is_likely_ai": confidence > 50,
+        "confidence": round(confidence, 1),
+        "indicators_found": ai_indicators,
+        "total_checks": total_checks,
+        "reasons": reasons if reasons else ["No strong AI indicators detected"]
+    }
 
+
+@app.post("/api/detect-ai-text")
+async def detect_ai_text(text: str = Form(...)):
+    """
+    Analyze text to detect if it was AI-generated.
+    
+    Returns:
+        Analysis with confidence score and reasoning
+    """
+    try:
+        if not text.strip():
+            raise HTTPException(status_code=400, detail="Text cannot be empty")
+        
+        if len(text) < 50:
+            return {
+                "success": True,
+                "is_likely_ai": False,
+                "confidence": 0,
+                "message": "Text too short to analyze (minimum 50 characters)",
+                "word_count": len(text.split()),
+                "char_count": len(text)
+            }
+        
+        # Perform AI detection
+        analysis = detect_ai_patterns(text)
+        
+        # Additional metrics
+        word_count = len(text.split())
+        sentences = [s for s in re.split(r'[.!?]+', text) if s.strip()]
+        avg_sentence_length = sum(len(s.split()) for s in sentences) / len(sentences) if sentences else 0
+        
+        result = {
+            "success": True,
+            "is_likely_ai": analysis["is_likely_ai"],
+            "confidence": analysis["confidence"],
+            "message": f"{'⚠️ Likely AI-generated' if analysis['is_likely_ai'] else '✅ Likely human-written'}",
+            "analysis": {
+                "indicators_found": analysis["indicators_found"],
+                "total_checks": analysis["total_checks"],
+                "reasons": analysis["reasons"]
+            },
+            "metrics": {
+                "word_count": word_count,
+                "char_count": len(text),
+                "sentence_count": len(sentences),
+                "avg_sentence_length": round(avg_sentence_length, 1)
+            }
+        }
+        
+        print(f"[AI-DETECT] Confidence: {analysis['confidence']}% | {'AI' if analysis['is_likely_ai'] else 'Human'} | {word_count} words")
+        
+        return result
+        
+    except Exception as e:
+        print(f"[ERROR] AI detection failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
+# IMAGE DEEPFAKE DETECTION ROUTES
+# ============================================================================
+
+def analyze_image_for_ai(image_data: bytes) -> dict:
+    """
+    Analyze image for AI-generation indicators.
+    Basic implementation - real deepfake detection needs specialized models.
+    """
+    try:
+        image = Image.open(BytesIO(image_data))
+        
+        indicators = []
+        ai_score = 0
+        
+        # Check 1: Unnatural smoothness (AI often over-smooths)
+        img_array = list(image.getdata())
+        if len(img_array) > 1000:
+            sample = img_array[:1000]
+            if isinstance(sample[0], tuple):  # RGB
+                variance = sum(abs(sample[i][0] - sample[i+1][0]) for i in range(len(sample)-1))
+                if variance < 1000:  # Very smooth
+                    ai_score += 25
+                    indicators.append("Unusually smooth color transitions")
+        
+        # Check 2: Perfect symmetry (AI struggles with asymmetry)
+        width, height = image.size
+        if width == height or abs(width - height) < 50:
+            ai_score += 15
+            indicators.append("Suspiciously symmetric dimensions")
+        
+        # Check 3: Common AI image sizes
+        common_ai_sizes = [(512, 512), (1024, 1024), (768, 768), (1024, 768)]
+        if (width, height) in common_ai_sizes:
+            ai_score += 20
+            indicators.append(f"Common AI generation size ({width}x{height})")
+        
+        # Check 4: No EXIF data (AI images often lack metadata)
+        try:
+            exif = image._getexif()
+            if exif is None or len(exif) == 0:
+                ai_score += 15
+                indicators.append("Missing camera EXIF metadata")
+        except:
+            ai_score += 10
+            indicators.append("No metadata found")
+        
+        # Check 5: Format analysis
+        if image.format == 'PNG' and image.size[0] * image.size[1] > 500000:
+            ai_score += 10
+            indicators.append("Large PNG (AI generators prefer PNG)")
+        
+        return {
+            "is_likely_ai": ai_score > 50,
+            "confidence": min(ai_score, 85),  # Cap at 85% for basic detection
+            "indicators": indicators if indicators else ["No strong AI indicators"],
+            "image_info": {
+                "format": image.format,
+                "size": f"{width}x{height}",
+                "mode": image.mode
+            }
+        }
+        
+    except Exception as e:
+        return {
+            "is_likely_ai": False,
+            "confidence": 0,
+            "indicators": [f"Analysis failed: {str(e)}"],
+            "image_info": {}
+        }
+
+
+@app.post("/api/detect-ai-image")
+async def detect_ai_image(file: UploadFile = File(...)):
+    """
+    Analyze image to detect if it was AI-generated/deepfake.
+    
+    Returns:
+        Analysis with confidence score and indicators
+    """
+    try:
+        image_data = await file.read()
+        
+        if len(image_data) == 0:
+            raise HTTPException(status_code=400, detail="Empty file")
+        
+        if len(image_data) > 10 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="Image too large (max 10MB)")
+        
+        # Verify it's an image
+        try:
+            image = Image.open(BytesIO(image_data))
+            image.verify()
+            # Reopen after verify
+            image = Image.open(BytesIO(image_data))
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid image file")
+        
+        # Perform AI detection
+        analysis = analyze_image_for_ai(image_data)
+        
+        result = {
+            "success": True,
+            "is_likely_ai": analysis["is_likely_ai"],
+            "confidence": analysis["confidence"],
+            "message": f"{'⚠️ Likely AI-generated/deepfake' if analysis['is_likely_ai'] else '✅ Likely authentic image'}",
+            "analysis": {
+                "indicators": analysis["indicators"]
+            },
+            "image_info": analysis["image_info"],
+            "warning": "⚠️ This is a basic analysis. For high-stakes verification, use specialized deepfake detection services."
+        }
+        
+        print(f"[IMAGE-DETECT] {file.filename} | Confidence: {analysis['confidence']}% | {'AI' if analysis['is_likely_ai'] else 'Real'}")
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[ERROR] Image detection failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 if __name__ == "__main__":
     import uvicorn
     
