@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Verification - CryptoQR</title>
+    <title>Deepfake Detection - CryptoQR</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -11,15 +11,15 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             min-height: 100vh;
-             padding: 0;
+            padding: 0;
         }
         
         .container {
             max-width: 1000px;
-             margin: 2rem auto;
+            margin: 6rem auto 2rem;
             background: white;
             border-radius: 20px;
-            padding: 2rem;
+            padding: 3rem;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         
@@ -33,6 +33,15 @@
             color: #718096;
             margin-bottom: 2rem;
             font-size: 1.1rem;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
         }
         
         .upload-area {
@@ -50,6 +59,11 @@
             background: #fff5f7;
         }
         
+        .upload-area.has-file {
+            border-color: #48bb78;
+            background: #f0fdf4;
+        }
+        
         .upload-icon {
             font-size: 4rem;
             margin-bottom: 1rem;
@@ -57,28 +71,6 @@
         
         input[type="file"] {
             display: none;
-        }
-        
-        .options {
-            margin: 2rem 0;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
-        
-        .option-group label {
-            display: block;
-            color: #2d3748;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-        
-        select {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 1rem;
         }
         
         .btn {
@@ -90,6 +82,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
+            margin-top: 1.5rem;
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
         }
@@ -104,84 +97,124 @@
             cursor: not-allowed;
         }
         
-        .preview-area {
+        .result-box {
             margin-top: 2rem;
+            padding: 2rem;
+            border-radius: 12px;
             display: none;
         }
         
-        .preview-area.active {
-            display: block;
+        .result-box.ai {
+            background: #fff5f5;
+            border: 3px solid #f56565;
         }
         
-        .image-comparison {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-top: 2rem;
+        .result-box.real {
+            background: #f0fdf4;
+            border: 3px solid #48bb78;
         }
         
-        .image-box {
-            text-align: center;
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
         }
         
-        .image-box h3 {
-            margin-bottom: 1rem;
-            color: #2d3748;
+        .result-icon {
+            font-size: 3rem;
         }
         
-        .image-box img {
-            max-width: 100%;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
         }
         
-        .download-btn {
-            margin-top: 1rem;
-            padding: 0.75rem 1.5rem;
-            background: #48bb78;
+        .confidence-bar {
+            width: 100%;
+            height: 30px;
+            background: #e2e8f0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
             font-weight: 600;
         }
         
-        .download-btn:hover {
-            background: #38a169;
+        .confidence-fill.ai {
+            background: linear-gradient(90deg, #f56565, #e53e3e);
         }
         
-        .info-box {
-            background: #edf2f7;
-            padding: 1.5rem;
+        .confidence-fill.real {
+            background: linear-gradient(90deg, #48bb78, #38a169);
+        }
+        
+        .image-preview {
+            max-width: 100%;
             border-radius: 12px;
-            margin-top: 1rem;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .image-info {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
         }
         
         .info-row {
             display: flex;
             justify-content: space-between;
             padding: 0.5rem 0;
-            border-bottom: 1px solid #cbd5e0;
+            border-bottom: 1px solid #e2e8f0;
         }
         
-        code {
-            background: #2d3748;
-            color: #48bb78;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .indicators-list h4 {
+            margin: 1.5rem 0 1rem;
+            color: #2d3748;
+        }
+        
+        .indicator-item {
+            padding: 0.75rem;
+            background: rgba(0,0,0,0.03);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 2rem 1.5rem;
+                margin-top: 5rem;
+            }
         }
     </style>
 </head>
 <body>
-     <!-- Navigation Bar -->
     <div id="navbar-container"></div>
-     <!-- Navigation Bar -->
-    <div id="navbar-container"></div>
+    
     <div class="container">
-        <h1>🖼️ Image Verification</h1>
-        <p class="subtitle">Add cryptographic proof to your images - prevent deepfakes</p>
+        <h1>🖼️ Deepfake Detection</h1>
+        <p class="subtitle">Analyze images to detect AI-generation or manipulation</p>
+        
+        <div class="warning-box">
+            ⚠️ <strong>Disclaimer:</strong> This is a basic heuristic analyzer. It checks for common AI-generation patterns like metadata absence, suspicious dimensions, and uniformity. For critical verification, use specialized tools like Microsoft's Video Authenticator or Sensity AI.
+        </div>
         
         <div class="upload-area" id="uploadArea">
             <div class="upload-icon">📁</div>
@@ -191,45 +224,48 @@
         
         <input type="file" id="fileInput" accept="image/*">
         
-        <div class="options">
-            <div class="option-group">
-                <label for="qr-position">QR Code Position</label>
-                <select id="qr-position">
-                    <option value="bottom-right">Bottom Right</option>
-                    <option value="bottom-left">Bottom Left</option>
-                    <option value="top-right">Top Right</option>
-                    <option value="top-left">Top Left</option>
-                </select>
-            </div>
-        </div>
-        
-        <button class="btn" id="signBtn" disabled>
-            🔐 Sign Image with CryptoQR
+        <button class="btn" id="analyzeBtn" disabled>
+            🔍 Analyze Image
         </button>
         
-        <div class="preview-area" id="previewArea">
-            <div class="image-comparison">
-                <div class="image-box">
-                    <h3>Original Image</h3>
-                    <img id="originalImage" src="" alt="Original">
-                </div>
-                <div class="image-box">
-                    <h3>Signed Image (with QR)</h3>
-                    <img id="signedImage" src="" alt="Signed">
-                    <button class="download-btn" onclick="downloadSignedImage()">⬇️ Download</button>
+        <div class="result-box" id="resultBox">
+            <div class="result-header">
+                <div class="result-icon" id="resultIcon"></div>
+                <div>
+                    <div class="result-title" id="resultTitle"></div>
+                    <div id="resultMessage" style="color: #718096; margin-top: 0.25rem;"></div>
                 </div>
             </div>
             
-            <div class="info-box">
-                <h3 style="margin-bottom: 1rem;">Verification Details</h3>
+            <div class="confidence-bar">
+                <div class="confidence-fill" id="confidenceFill"></div>
+            </div>
+            
+            <img id="imagePreview" class="image-preview" style="display: none;">
+            
+            <div class="image-info">
+                <h4 style="margin-bottom: 1rem;">Image Information:</h4>
                 <div class="info-row">
-                    <span><strong>Content Hash:</strong></span>
-                    <span><code id="imageHash">-</code></span>
+                    <span><strong>Format:</strong></span>
+                    <span id="imageFormat">-</span>
                 </div>
                 <div class="info-row">
-                    <span><strong>Timestamp:</strong></span>
-                    <span id="imageTimestamp">-</span>
+                    <span><strong>Dimensions:</strong></span>
+                    <span id="imageDimensions">-</span>
                 </div>
+                <div class="info-row">
+                    <span><strong>Color Mode:</strong></span>
+                    <span id="imageMode">-</span>
+                </div>
+            </div>
+            
+            <div class="indicators-list">
+                <h4>📋 Detection Indicators:</h4>
+                <div id="indicatorsList"></div>
+            </div>
+            
+            <div style="background: #fff3cd; padding: 1rem; border-radius: 8px; margin-top: 1.5rem; font-size: 0.9rem;">
+                <strong>Note:</strong> <span id="warningText"></span>
             </div>
         </div>
     </div>
@@ -237,11 +273,10 @@
     <script>
         const API_BASE = 'https://cryptoqr-api-awkm.onrender.com';
         let selectedFile = null;
-        let signedImageData = null;
         
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
-        const signBtn = document.getElementById('signBtn');
+        const analyzeBtn = document.getElementById('analyzeBtn');
         
         uploadArea.addEventListener('click', () => fileInput.click());
         
@@ -271,71 +306,106 @@
             }
             
             selectedFile = file;
-            signBtn.disabled = false;
+            analyzeBtn.disabled = false;
             
-            // Show preview
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                document.getElementById('originalImage').src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-            
+            uploadArea.classList.add('has-file');
             uploadArea.innerHTML = `
                 <div class="upload-icon">✅</div>
                 <h2>${file.name}</h2>
                 <p style="color: #718096; margin-top: 0.5rem;">${(file.size / 1024).toFixed(1)} KB</p>
             `;
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('imagePreview').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
         }
         
-        signBtn.addEventListener('click', async () => {
+        async function analyzeImage() {
             if (!selectedFile) return;
             
-            signBtn.disabled = true;
-            signBtn.textContent = '🔄 Processing...';
+            analyzeBtn.disabled = true;
+            analyzeBtn.textContent = '🔄 Analyzing...';
+            document.getElementById('resultBox').style.display = 'none';
             
             try {
                 const formData = new FormData();
                 formData.append('file', selectedFile);
-                formData.append('position', document.getElementById('qr-position').value);
                 
-                const response = await fetch(`${API_BASE}/api/sign-image`, {
+                const response = await fetch(`${API_BASE}/api/detect-ai-image`, {
                     method: 'POST',
                     body: formData
                 });
                 
                 const data = await response.json();
                 
-                if (data.success) {
-                    signedImageData = data.image_data;
-                    document.getElementById('signedImage').src = 'data:image/png;base64,' + data.image_data;
-                    document.getElementById('imageHash').textContent = data.hash.substring(0, 16) + '...';
-                    document.getElementById('imageTimestamp').textContent = new Date(data.timestamp).toLocaleString();
-                    document.getElementById('previewArea').classList.add('active');
+                if (!data.success) {
+                    throw new Error(data.detail || 'Analysis failed');
                 }
                 
-                signBtn.textContent = '✅ Signed!';
-                setTimeout(() => {
-                    signBtn.textContent = '🔐 Sign Image with CryptoQR';
-                    signBtn.disabled = false;
-                }, 2000);
+                displayResults(data);
                 
             } catch (error) {
-                alert('Error signing image: ' + error.message);
-                signBtn.textContent = '🔐 Sign Image with CryptoQR';
-                signBtn.disabled = false;
+                alert('Analysis failed: ' + error.message);
+            } finally {
+                analyzeBtn.disabled = false;
+                analyzeBtn.textContent = '🔍 Analyze Image';
             }
-        });
+        }
         
-        function downloadSignedImage() {
-            if (!signedImageData) return;
+        analyzeBtn.addEventListener('click', analyzeImage);
+        
+        function displayResults(data) {
+            const resultBox = document.getElementById('resultBox');
+            const confidence = data.confidence;
+            const isAI = data.is_likely_ai;
             
-            const link = document.createElement('a');
-            link.href = 'data:image/png;base64,' + signedImageData;
-            link.download = 'cryptoqr-signed-' + Date.now() + '.png';
-            link.click();
+            resultBox.className = `result-box ${isAI ? 'ai' : 'real'}`;
+            
+            // Set icon and title
+            if (isAI) {
+                document.getElementById('resultIcon').textContent = '⚠️';
+                document.getElementById('resultTitle').textContent = 'Likely AI-Generated';
+            } else {
+                document.getElementById('resultIcon').textContent = '✅';
+                document.getElementById('resultTitle').textContent = 'Likely Authentic';
+            }
+            
+            document.getElementById('resultMessage').textContent = data.message;
+            
+            // Confidence bar
+            const confidenceFill = document.getElementById('confidenceFill');
+            confidenceFill.style.width = confidence + '%';
+            confidenceFill.textContent = confidence + '% confidence';
+            confidenceFill.className = `confidence-fill ${isAI ? 'ai' : 'real'}`;
+            
+            // Image info
+            document.getElementById('imageFormat').textContent = data.image_info.format || '-';
+            document.getElementById('imageDimensions').textContent = data.image_info.size || '-';
+            document.getElementById('imageMode').textContent = data.image_info.mode || '-';
+            
+            // Show preview
+            document.getElementById('imagePreview').style.display = 'block';
+            
+            // Indicators
+            const indicatorsList = document.getElementById('indicatorsList');
+            indicatorsList.innerHTML = data.analysis.indicators.map(indicator => `
+                <div class="indicator-item">
+                    <span>${isAI ? '⚠️' : '✓'}</span>
+                    <span>${indicator}</span>
+                </div>
+            `).join('');
+            
+            // Warning text
+            document.getElementById('warningText').textContent = data.warning;
+            
+            resultBox.style.display = 'block';
+            resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     </script>
-    <!-- Load Navigation -->
+    
     <script>
         fetch('navbar.html')
             .then(response => response.text())
@@ -344,6 +414,5 @@
             })
             .catch(error => console.error('Navigation load failed:', error));
     </script>
-</body>
 </body>
 </html>
