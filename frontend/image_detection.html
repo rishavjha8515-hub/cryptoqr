@@ -11,15 +11,15 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             min-height: 100vh;
-            padding: 2rem;
+             padding: 0;
         }
         
         .container {
             max-width: 1000px;
-            margin: 0 auto;
+             margin: 2rem auto;
             background: white;
             border-radius: 20px;
-            padding: 3rem;
+            padding: 2rem;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         
@@ -175,6 +175,10 @@
     </style>
 </head>
 <body>
+     <!-- Navigation Bar -->
+    <div id="navbar-container"></div>
+     <!-- Navigation Bar -->
+    <div id="navbar-container"></div>
     <div class="container">
         <h1>🖼️ Image Verification</h1>
         <p class="subtitle">Add cryptographic proof to your images - prevent deepfakes</p>
@@ -331,5 +335,15 @@
             link.click();
         }
     </script>
+    <!-- Load Navigation -->
+    <script>
+        fetch('navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+            })
+            .catch(error => console.error('Navigation load failed:', error));
+    </script>
+</body>
 </body>
 </html>

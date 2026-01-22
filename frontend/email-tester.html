@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoQR Email Tester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+            display: none;
+        }
+
+        .result.success {
+            background: #f0fdf4;
+            border: 2px solid #86efac;
+            color: #166534;
+            display: block;
+        }
+
+        .result.error {
+            background: #fef2f2;
+            border: 2px solid #fca5a5;
+            color: #991b1b;
+            display: block;
+        }
+
+        .result.info {
+            background: #eff6ff;
+            border: 2px solid #93c5fd;
+            color: #1e40af;
+            display: block;
+        }
+
+        .result pre {
+            background: rgba(0,0,0,0.05);
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #92400e;
+        }
+
+        .check-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .check-item:last-child {
+            border-bottom: none;
+        }
+
+        .check-label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .check-value {
+            color: #718096;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 CryptoQR Email Debug Tool</h1>
+        <p class="subtitle">Test email delivery and debug submission issues</p>
+
+        <div class="info-box">
+            <strong>⚠️ What this tests:</strong><br>
+            1. Creates a test submission with your email<br>
+            2. Checks if the API sends the email<br>
+            3. Shows detailed logs and SendGrid response
+        </div>
+
+        <form id="testForm">
+            <div class="form-group">
+                <label for="apiUrl">API Base URL</label>
+                <input type="text" id="apiUrl" value="https://cryptoqr-api-awkm.onrender.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Test Email Address</label>
+                <input type="email" id="email" placeholder="your-other-email@gmail.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="testType">Test Type</label>
+                <select id="testType">
+                    <option value="test-email">Simple Test Email (/api/test-email)</option>
+                    <option value="full-submit">Full Submission Flow (/api/submit)</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn" id="submitBtn">Run Email Test</button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px; color: #718096;">Testing email delivery...</p>
+        </div>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('testForm');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const apiUrl = document.getElementById('apiUrl').value;
+            const email = document.getElementById('email').value;
+            const testType = document.getElementById('testType').value;
+
+            // Reset UI
+            result.className = 'result';
+            result.style.display = 'none';
+            loading.classList.add('active');
+            submitBtn.disabled = true;
+
+            try {
+                if (testType === 'test-email') {
+                    await testSimpleEmail(apiUrl);
+                } else {
+                    await testFullSubmission(apiUrl, email);
+                }
+            } catch (error) {
+                showResult('error', `❌ Test failed: ${error.message}`);
+            } finally {
+                loading.classList.remove('active');
+                submitBtn.disabled = false;
+            }
+        });
+
+        async function testSimpleEmail(apiUrl) {
+            const response = await fetch(`${apiUrl}/api/test-email`);
+            const data = await response.json();
+
+            let html = '<h3>📧 Test Email Result</h3>';
+            
+            if (data.success) {
+                html += `
+                    <div class="check-item">
+                        <span class="check-label">Status:</span>
+                        <span class="check-value" style="color: #10b981;">✅ Success</span>
+                    </div>
+                    <div class="check-item">
+                        <span class="check-label">Recipient:</span>
+                        <span class="check-value">${data.recipient}</span>
+                    </div>
+                    <div class="check-item">
+                        <span class="check-label">Message:</span>
+                        <span class="check-value">${data.message}</span>
+                    </div>
+                `;
+                showResult('success', html);
+            } else {
+                html += `
+                    <div class="check-item">
+                        <span class="check-label">Status:</span>
+                        <span class="check-value" style="color: #ef4444;">❌ Failed</span>
+                    </div>
+                    <div class="check-item">
+                        <span class="check-label">Error:</span>
+                        <span class="check-value">${data.error || data.message}</span>
+                    </div>
+                `;
+                if (data.troubleshooting) {
+                    html += `<pre>${JSON.stringify(data.troubleshooting, null, 2)}</pre>`;
+                }
+                showResult('error', html);
+            }
+        }
+
+        async function testFullSubmission(apiUrl, email) {
+            // Create a test file
+            const testContent = `CryptoQR Email Test - ${new Date().toISOString()}`;
+            const blob = new Blob([testContent], { type: 'text/plain' });
+            const file = new File([blob], 'test.txt', { type: 'text/plain' });
+
+            // Create form data
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('competition_id', 'EMAIL-TEST-2026');
+            formData.append('deadline', new Date(Date.now() + 86400000).toISOString());
+            formData.append('email', email);
+
+            const response = await fetch(`${apiUrl}/api/submit`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            let html = '<h3>📤 Full Submission Test</h3>';
+            
+            if (data.success) {
+                html += `
+                    <div class="check-item">
+                        <span class="check-label">Submission:</span>
+                        <span class="check-value" style="color: #10b981;">✅ Success</span>
+                    </div>
+                    <div class="check-item">
+                        <span class="check-label">Submission ID:</span>
+                        <span class="check-value">${data.submission_id}</span>
+                    </div>
+                    <div class="check-item">
+                        <span class="check-label">Email To:</span>
+                        <span class="check-value">${email}</span>
+                    </div>
+                    <div class="check-item">
+                        <span class="check-label">Email Sent:</span>
+                        <span class="check-value" style="color: ${data.email_sent ? '#10b981' : '#ef4444'};">
+                            ${data.email_sent ? '✅ Yes' : '❌ No'}
+                        </span>
+                    </div>
+                    <div class="check-item">
+                        <span class="check-label">Email Message:</span>
+                        <span class="check-value">${data.email_message || 'N/A'}</span>
+                    </div>
+                `;
+                
+                if (data.email_sent) {
+                    html += `
+                        <div style="margin-top: 15px; padding: 15px; background: #f0fdf4; border-radius: 8px;">
+                            <strong>✅ Next Steps:</strong><br>
+                            1. Check ${email} inbox<br>
+                            2. Check spam/junk folder<br>
+                            3. Check SendGrid Activity: <a href="https://app.sendgrid.com/email_activity" target="_blank">View Activity</a><br>
+                            4. Wait 2-3 minutes for delivery
+                        </div>
+                    `;
+                    showResult('success', html);
+                } else {
+                    html += `
+                        <div style="margin-top: 15px; padding: 15px; background: #fef2f2; border-radius: 8px;">
+                            <strong>❌ Email Not Sent</strong><br>
+                            Reason: ${data.email_message || 'Unknown error'}
+                        </div>
+                    `;
+                    showResult('error', html);
+                }
+            } else {
+                html += `
+                    <div class="check-item">
+                        <span class="check-label">Status:</span>
+                        <span class="check-value" style="color: #ef4444;">❌ Failed</span>
+                    </div>
+                    <div class="check-item">
+                        <span class="check-label">Error:</span>
+                        <span class="check-value">${data.detail || data.message || 'Unknown error'}</span>
+                    </div>
+                `;
+                showResult('error', html);
+            }
+
+            html += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            result.innerHTML = html;
+        }
+
+        function showResult(type, content) {
+            result.className = `result ${type}`;
+            result.innerHTML = content;
+            result.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

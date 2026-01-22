@@ -36,7 +36,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 0px;
             transition: background 0.3s ease;
         }
 
@@ -48,6 +48,7 @@
             width: 100%;
             box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
             transition: all 0.3s ease;
+             margin: 2rem auto;
         }
 
         .header { text-align: center; margin-bottom: 40px; }
@@ -321,6 +322,8 @@
     </style>
 </head>
 <body>
+    <!-- Navigation Bar -->
+    <div id="navbar-container"></div>
     <div class="theme-toggle" id="themeToggle">
         <span id="themeIcon">🌙</span>
     </div>
@@ -932,5 +935,15 @@
             showToast(`${theme === 'dark' ? '🌙 Dark' : '☀️ Light'} mode activated`, 2000);
         });
     </script>
+    <!-- Load Navigation -->
+    <script>
+        fetch('navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+            })
+            .catch(error => console.error('Navigation load failed:', error));
+    </script>
+</body>
 </body>
 </html>

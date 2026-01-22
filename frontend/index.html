@@ -31,7 +31,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 0px;
         }
 
         .container {
@@ -41,6 +41,7 @@
             max-width: 680px;
             width: 100%;
             box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+             margin: 2rem auto;
         }
 
         .header {
@@ -574,6 +575,8 @@
     </style>
 </head>
 <body>
+    <!-- Navigation Bar -->
+    <div id="navbar-container"></div>
     <!-- THEME TOGGLE BUTTON -->
     <div class="theme-toggle" id="themeToggle">
         <span class="theme-toggle-icon" id="themeIcon">🌙</span>
@@ -1148,6 +1151,14 @@ document.getElementById('downloadCert').addEventListener('click', async () => {
                 try { localStorage.setItem('theme', 'light'); } catch(e) {}
             }
         });;
+    </script>
+    <script>
+         fetch('navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+            })
+            .catch(error => console.error('Navigation load failed:', error));
     </script>
 </body>
 </html>

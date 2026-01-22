@@ -1,0 +1,755 @@
+<!-- ============================================= -->
+<!-- CryptoQR Premium Navigation - Landing Page   -->
+<!-- Modern, Glassmorphic, Animated Design        -->
+<!-- ============================================= -->
+
+<style>
+    /* Premium Navigation Styles */
+    .cryptoqr-premium-nav {
+        position: sticky;
+        top: 0;
+        z-index: 10000;
+        width: 100%;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    }
+
+    /* Glassmorphic navbar with blur */
+    .nav-glass-wrapper {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Gradient overlay on scroll */
+    .nav-glass-wrapper::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, 
+            transparent, 
+            rgba(102, 126, 234, 0.4) 50%, 
+            transparent
+        );
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .nav-glass-wrapper.scrolled::before {
+        opacity: 1;
+    }
+
+    .nav-glass-wrapper.scrolled {
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    }
+
+    /* Container */
+    .nav-premium-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 3rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 80px;
+    }
+
+    /* Brand Section - Premium Logo */
+    .nav-premium-brand {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        text-decoration: none;
+        position: relative;
+        z-index: 10;
+    }
+
+    .nav-premium-logo {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        box-shadow: 
+            0 4px 20px rgba(102, 126, 234, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Animated shimmer effect */
+    .nav-premium-logo::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(
+            45deg,
+            transparent 30%,
+            rgba(255, 255, 255, 0.3) 50%,
+            transparent 70%
+        );
+        animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+        100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+
+    .nav-premium-brand:hover .nav-premium-logo {
+        transform: scale(1.05) rotate(-5deg);
+        box-shadow: 
+            0 8px 30px rgba(102, 126, 234, 0.5),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .nav-premium-brand-text {
+        display: flex;
+        flex-direction: column;
+        gap: 0.125rem;
+    }
+
+    .nav-premium-brand-name {
+        font-size: 1.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.03em;
+    }
+
+    .nav-premium-brand-tagline {
+        font-size: 0.7rem;
+        color: #718096;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    /* Navigation Links Container */
+    .nav-premium-links {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(247, 250, 252, 0.6);
+        padding: 0.5rem;
+        border-radius: 16px;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    /* Individual Link with Floating Effect */
+    .nav-premium-link {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        color: #4a5568;
+        text-decoration: none;
+        font-size: 0.95rem;
+        font-weight: 600;
+        border-radius: 12px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+    }
+
+    /* Floating background effect */
+    .nav-premium-link::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, 
+            rgba(102, 126, 234, 0.1) 0%, 
+            rgba(118, 75, 162, 0.1) 100%
+        );
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        border-radius: 12px;
+    }
+
+    .nav-premium-link:hover::before {
+        opacity: 1;
+    }
+
+    .nav-premium-link:hover {
+        color: #667eea;
+        transform: translateY(-2px);
+    }
+
+    .nav-premium-link-icon {
+        font-size: 1.25rem;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .nav-premium-link:hover .nav-premium-link-icon {
+        transform: scale(1.2) rotate(-5deg);
+    }
+
+    /* Active state with glow */
+    .nav-premium-link.active {
+        color: white;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        box-shadow: 
+            0 4px 15px rgba(102, 126, 234, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-premium-link.active::before {
+        opacity: 0;
+    }
+
+    .nav-premium-link.active .nav-premium-link-icon {
+        filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+    }
+
+    /* Premium CTA Button */
+    .nav-premium-cta-group {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .nav-premium-cta {
+        position: relative;
+        padding: 0.875rem 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        text-decoration: none;
+        font-size: 1rem;
+        font-weight: 700;
+        border-radius: 12px;
+        box-shadow: 
+            0 4px 20px rgba(102, 126, 234, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Animated gradient background */
+    .nav-premium-cta::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent, 
+            rgba(255, 255, 255, 0.3), 
+            transparent
+        );
+        transition: left 0.5s ease;
+    }
+
+    .nav-premium-cta:hover::before {
+        left: 100%;
+    }
+
+    .nav-premium-cta:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 
+            0 8px 30px rgba(102, 126, 234, 0.5),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-premium-cta:active {
+        transform: translateY(-1px) scale(0.98);
+    }
+
+    .nav-premium-cta-icon {
+        font-size: 1.25rem;
+        animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateX(0); }
+        50% { transform: translateX(5px); }
+    }
+
+    /* Mobile Menu Toggle */
+    .nav-premium-mobile-toggle {
+        display: none;
+        background: rgba(102, 126, 234, 0.1);
+        border: 2px solid rgba(102, 126, 234, 0.3);
+        color: #667eea;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0.75rem;
+        border-radius: 12px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .nav-premium-mobile-toggle:hover {
+        background: rgba(102, 126, 234, 0.2);
+        transform: scale(1.05);
+    }
+
+    /* Mobile Menu - Premium Slide-in */
+    .nav-premium-mobile-menu {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 100%;
+        max-width: 400px;
+        height: 100vh;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(40px);
+        -webkit-backdrop-filter: blur(40px);
+        box-shadow: -8px 0 32px rgba(0, 0, 0, 0.1);
+        z-index: 9999;
+        transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow-y: auto;
+    }
+
+    .nav-premium-mobile-menu.active {
+        right: 0;
+    }
+
+    /* Mobile menu overlay */
+    .nav-premium-mobile-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 9998;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .nav-premium-mobile-overlay.active {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .nav-premium-mobile-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 2rem;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .nav-premium-mobile-close {
+        background: rgba(239, 68, 68, 0.1);
+        border: 2px solid rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0.75rem;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .nav-premium-mobile-close:hover {
+        background: rgba(239, 68, 68, 0.2);
+        transform: rotate(90deg);
+    }
+
+    .nav-premium-mobile-links {
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .nav-premium-mobile-links .nav-premium-link {
+        padding: 1.25rem 1.5rem;
+        border: 2px solid rgba(226, 232, 240, 0.8);
+        background: white;
+    }
+
+    .nav-premium-mobile-links .nav-premium-link.active {
+        border-color: #667eea;
+    }
+
+    .nav-premium-mobile-cta {
+        margin: 0 2rem 2rem;
+        text-align: center;
+        display: block;
+    }
+
+    /* Floating elements decoration */
+    .nav-floating-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(60px);
+        opacity: 0.3;
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    .nav-floating-orb-1 {
+        width: 300px;
+        height: 300px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        top: -150px;
+        left: 10%;
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .nav-floating-orb-2 {
+        width: 200px;
+        height: 200px;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        top: -100px;
+        right: 20%;
+        animation: float 8s ease-in-out infinite reverse;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-20px) scale(1.1); }
+    }
+
+    /* Dark Mode Support */
+    [data-theme="dark"] .nav-glass-wrapper,
+    body.dark-mode .nav-glass-wrapper {
+        background: rgba(26, 32, 44, 0.8);
+        border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+
+    [data-theme="dark"] .nav-premium-links,
+    body.dark-mode .nav-premium-links {
+        background: rgba(45, 55, 72, 0.6);
+        border-color: rgba(74, 85, 104, 0.8);
+    }
+
+    [data-theme="dark"] .nav-premium-link,
+    body.dark-mode .nav-premium-link {
+        color: #cbd5e0;
+    }
+
+    [data-theme="dark"] .nav-premium-link:hover,
+    body.dark-mode .nav-premium-link:hover {
+        color: #90cdf4;
+    }
+
+    [data-theme="dark"] .nav-premium-mobile-menu,
+    body.dark-mode .nav-premium-mobile-menu {
+        background: rgba(26, 32, 44, 0.98);
+    }
+
+    [data-theme="dark"] .nav-premium-mobile-links .nav-premium-link,
+    body.dark-mode .nav-premium-mobile-links .nav-premium-link {
+        background: rgba(45, 55, 72, 0.8);
+        border-color: rgba(74, 85, 104, 0.8);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+        .nav-premium-container {
+            padding: 0 2rem;
+        }
+
+        .nav-premium-link {
+            padding: 0.625rem 1rem;
+            font-size: 0.875rem;
+        }
+    }
+
+    @media (max-width: 968px) {
+        .nav-premium-container {
+            height: 70px;
+            padding: 0 1.5rem;
+        }
+
+        .nav-premium-links {
+            display: none;
+        }
+
+        .nav-premium-cta-group .nav-premium-cta {
+            display: none;
+        }
+
+        .nav-premium-mobile-toggle {
+            display: block;
+        }
+
+        .nav-premium-logo {
+            width: 44px;
+            height: 44px;
+            font-size: 1.5rem;
+        }
+
+        .nav-premium-brand-name {
+            font-size: 1.25rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .nav-premium-brand-tagline {
+            display: none;
+        }
+
+        .nav-premium-mobile-menu {
+            max-width: 100%;
+        }
+    }
+
+    /* Performance optimizations */
+    @media (prefers-reduced-motion: reduce) {
+        * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+
+    /* Print styles */
+    @media print {
+        .cryptoqr-premium-nav {
+            display: none;
+        }
+    }
+</style>
+
+<!-- Premium Navigation HTML -->
+<nav class="cryptoqr-premium-nav" role="navigation" aria-label="Main navigation">
+    <!-- Floating decorative orbs -->
+    <div class="nav-floating-orb nav-floating-orb-1" aria-hidden="true"></div>
+    <div class="nav-floating-orb nav-floating-orb-2" aria-hidden="true"></div>
+
+    <!-- Glass morphic wrapper -->
+    <div class="nav-glass-wrapper" id="navGlassWrapper">
+        <div class="nav-premium-container">
+            <!-- Premium Brand -->
+            <a href="index.html" class="nav-premium-brand" aria-label="CryptoQR Home">
+                <div class="nav-premium-logo" aria-hidden="true">🔐</div>
+                <div class="nav-premium-brand-text">
+                    <div class="nav-premium-brand-name">CryptoQR</div>
+                    <div class="nav-premium-brand-tagline">AI Safety Platform</div>
+                </div>
+            </a>
+
+            <!-- Desktop Navigation -->
+            <div class="nav-premium-links" role="menubar">
+                <a href="index.html" class="nav-premium-link" data-page="index" role="menuitem">
+                    <span class="nav-premium-link-icon" aria-hidden="true">📝</span>
+                    <span>Submit</span>
+                </a>
+                
+                <a href="verify.html" class="nav-premium-link" data-page="verify" role="menuitem">
+                    <span class="nav-premium-link-icon" aria-hidden="true">✅</span>
+                    <span>Verify</span>
+                </a>
+                
+                <a href="ai_detection.html" class="nav-premium-link" data-page="ai_detection" role="menuitem">
+                    <span class="nav-premium-link-icon" aria-hidden="true">🤖</span>
+                    <span>AI Detection</span>
+                </a>
+                
+                <a href="image_detection.html" class="nav-premium-link" data-page="image_detection" role="menuitem">
+                    <span class="nav-premium-link-icon" aria-hidden="true">🖼️</span>
+                    <span>Images</span>
+                </a>
+                
+                <a href="batch-verify.html" class="nav-premium-link" data-page="batch-verify" role="menuitem">
+                    <span class="nav-premium-link-icon" aria-hidden="true">📁</span>
+                    <span>Batch</span>
+                </a>
+                
+                <a href="dashboard.html" class="nav-premium-link" data-page="dashboard" role="menuitem">
+                    <span class="nav-premium-link-icon" aria-hidden="true">📊</span>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+
+            <!-- CTA Group -->
+            <div class="nav-premium-cta-group">
+                <a href="index.html" class="nav-premium-cta" role="button">
+                    <span>Get Started</span>
+                    <span class="nav-premium-cta-icon" aria-hidden="true">→</span>
+                </a>
+
+                <!-- Mobile Toggle -->
+                <button class="nav-premium-mobile-toggle" 
+                        id="navPremiumToggle"
+                        aria-label="Toggle navigation menu"
+                        aria-expanded="false">
+                    <span id="navPremiumIcon">☰</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="nav-premium-mobile-overlay" id="navPremiumOverlay"></div>
+
+    <!-- Mobile Menu Panel -->
+    <div class="nav-premium-mobile-menu" id="navPremiumMenu" role="dialog" aria-modal="true">
+        <div class="nav-premium-mobile-header">
+            <a href="index.html" class="nav-premium-brand">
+                <div class="nav-premium-logo">🔐</div>
+                <div class="nav-premium-brand-text">
+                    <div class="nav-premium-brand-name">CryptoQR</div>
+                    <div class="nav-premium-brand-tagline">AI Safety Platform</div>
+                </div>
+            </a>
+            <button class="nav-premium-mobile-close" id="navPremiumClose" aria-label="Close menu">
+                ✕
+            </button>
+        </div>
+
+        <div class="nav-premium-mobile-links" role="menu">
+            <a href="index.html" class="nav-premium-link" data-page="index" role="menuitem">
+                <span class="nav-premium-link-icon">📝</span>
+                <span>Submit Project</span>
+            </a>
+            
+            <a href="verify.html" class="nav-premium-link" data-page="verify" role="menuitem">
+                <span class="nav-premium-link-icon">✅</span>
+                <span>Verify Submission</span>
+            </a>
+            
+            <a href="ai_detection.html" class="nav-premium-link" data-page="ai_detection" role="menuitem">
+                <span class="nav-premium-link-icon">🤖</span>
+                <span>AI Content Detection</span>
+            </a>
+            
+            <a href="image_detection.html" class="nav-premium-link" data-page="image_detection" role="menuitem">
+                <span class="nav-premium-link-icon">🖼️</span>
+                <span>Image Verification</span>
+            </a>
+            
+            <a href="batch-verify.html" class="nav-premium-link" data-page="batch-verify" role="menuitem">
+                <span class="nav-premium-link-icon">📁</span>
+                <span>Batch Verification</span>
+            </a>
+            
+            <a href="dashboard.html" class="nav-premium-link" data-page="dashboard" role="menuitem">
+                <span class="nav-premium-link-icon">📊</span>
+                <span>Dashboard</span>
+            </a>
+        </div>
+
+        <a href="index.html" class="nav-premium-cta nav-premium-mobile-cta" role="button">
+            <span>Get Started Free</span>
+            <span class="nav-premium-cta-icon">→</span>
+        </a>
+    </div>
+</nav>
+
+<!-- Premium Navigation JavaScript -->
+<script>
+(function() {
+    'use strict';
+
+    // Elements
+    const glassWrapper = document.getElementById('navGlassWrapper');
+    const mobileToggle = document.getElementById('navPremiumToggle');
+    const mobileMenu = document.getElementById('navPremiumMenu');
+    const mobileOverlay = document.getElementById('navPremiumOverlay');
+    const mobileClose = document.getElementById('navPremiumClose');
+    const mobileIcon = document.getElementById('navPremiumIcon');
+
+    // Active page highlighting
+    function highlightActivePage() {
+        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        const navLinks = document.querySelectorAll('.nav-premium-link[data-page]');
+        
+        navLinks.forEach(link => {
+            const linkPage = link.getAttribute('data-page') + '.html';
+            if (linkPage === currentPage || (currentPage === '' && linkPage === 'index.html')) {
+                link.classList.add('active');
+                link.setAttribute('aria-current', 'page');
+            }
+        });
+    }
+
+    // Scroll effect for glass morphism
+    function handleScroll() {
+        if (window.pageYOffset > 50) {
+            glassWrapper.classList.add('scrolled');
+        } else {
+            glassWrapper.classList.remove('scrolled');
+        }
+    }
+
+    // Mobile menu functions
+    function openMobileMenu() {
+        mobileMenu.classList.add('active');
+        mobileOverlay.classList.add('active');
+        mobileToggle.setAttribute('aria-expanded', 'true');
+        mobileIcon.textContent = '✕';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileMenu() {
+        mobileMenu.classList.remove('active');
+        mobileOverlay.classList.remove('active');
+        mobileToggle.setAttribute('aria-expanded', 'false');
+        mobileIcon.textContent = '☰';
+        document.body.style.overflow = '';
+    }
+
+    // Event listeners
+    if (mobileToggle) {
+        mobileToggle.addEventListener('click', function() {
+            if (mobileMenu.classList.contains('active')) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
+        });
+    }
+
+    if (mobileClose) {
+        mobileClose.addEventListener('click', closeMobileMenu);
+    }
+
+    if (mobileOverlay) {
+        mobileOverlay.addEventListener('click', closeMobileMenu);
+    }
+
+    // Close menu when clicking links
+    const mobileLinks = document.querySelectorAll('.nav-premium-mobile-links .nav-premium-link');
+    mobileLinks.forEach(link => {
+        link.addEventListener('click', closeMobileMenu);
+    });
+
+    // Close menu on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && mobileMenu.classList.contains('active')) {
+            closeMobileMenu();
+            mobileToggle.focus();
+        }
+    });
+
+    // Scroll listener
+    let scrollTimeout;
+    window.addEventListener('scroll', function() {
+        if (scrollTimeout) {
+            window.cancelAnimationFrame(scrollTimeout);
+        }
+        scrollTimeout = window.requestAnimationFrame(handleScroll);
+    }, { passive: true });
+
+    // Initialize
+    highlightActivePage();
+    handleScroll();
+})();
+</script>
