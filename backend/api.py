@@ -22,7 +22,7 @@ from io import BytesIO
 from crypto_core import CryptoQRCore, VerificationResult
 from email_sender import send_submission_notification, email_sender
 import re
-from PIL import Imag
+from PIL import Image
 import re
 from typing import List
 
