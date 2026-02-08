@@ -9,22 +9,20 @@ FastAPI server providing cryptographic QR code generation and verification.
 import os
 import json
 import base64
-from datetime import datetime
+from datetime import datetime, timezone
 from collections import defaultdict
 from typing import Optional, Dict
+import re
 
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 import qrcode
 from io import BytesIO
+from PIL import Image
 
 from crypto_core import CryptoQRCore, VerificationResult
 from email_sender import send_submission_notification, email_sender
-import re
-from PIL import Image
-import re
-from typing import List
 
 
 # Initialize FastAPI app
@@ -89,6 +87,8 @@ async def root():
         "endpoints": {
             "submit": "/api/submit",
             "verify": "/api/verify",
+            "detect_ai_text": "/api/detect-ai-text",
+            "detect_ai_image": "/api/detect-ai-image",
             "public_key": "/api/public-key",
             "email_status": "/api/email-status",
             "test_email": "/api/test-email",
@@ -288,8 +288,6 @@ async def submit_document(
         
         # 🆕 SEND EMAIL NOTIFICATION IF EMAIL PROVIDED
         email_sent = False
-        print(f"🔍 DEBUG: Email value = '{email}' (type: {type(email)})")
-        print(f"🔍 DEBUG: email_sender.is_configured = {email_sender.is_configured}")
         
         if email:
             try:
@@ -552,235 +550,16 @@ def generate_qr_image(submission: Dict) -> str:
     img_bytes = buffer.getvalue()
     
     return base64.b64encode(img_bytes).decode('utf-8')
-@app.post("/api/sign-ai-text")
-async def sign_ai_text(
-    content: str = Form(...),
-    model_name: str = Form("claude-sonnet-4.5-20250514")
-):
-    """
-    Sign AI-generated text with cryptographic signature.
-    """
-    try:
-        if not content.strip():
-            raise HTTPException(status_code=400, detail="Content cannot be empty")
-        
-        # Convert text to bytes for hashing
-        content_bytes = content.encode('utf-8')
-        content_hash = crypto.hash_file(content_bytes)
-        
-        # Generate signature data
-        timestamp = datetime.now().isoformat() + 'Z'
-        submission_id = crypto._generate_submission_id()
-        nonce = crypto._generate_nonce()
-        
-        payload = {
-            'content_hash': content_hash,
-            'timestamp': timestamp,
-            'model': model_name,
-            'submission_id': submission_id,
-            'nonce': nonce,
-            'type': 'ai_content'
-        }
-        
-        # Sign payload
-        payload_bytes = json.dumps(payload, sort_keys=True).encode('utf-8')
-        signature = crypto.private_key.sign(payload_bytes)
-        signature_b64 = base64.b64encode(signature).decode('utf-8')
-        
-        # Create signed text block
-        signed_text = f"""{content}
-
----
-🤖 AI-GENERATED CONTENT VERIFICATION
-Model: {model_name}
-Generated: {timestamp}
-Content Hash: {content_hash[:16]}...
-Signature: {signature_b64[:32]}...
-Verify at: cryptoqr-eta.vercel.app/verify-ai
----"""
-        
-        print(f"[AI-SIGN] {submission_id} | {model_name} | {len(content)} chars")
-        
-        return {
-            "success": True,
-            "signature": signature_b64,
-            "hash": content_hash,
-            "timestamp": timestamp,
-            "signed_text": signed_text,
-            "submission_id": submission_id,
-            "verification_url": "https://cryptoqr-eta.vercel.app/verify-ai"
-        }
-        
-    except Exception as e:
-        print(f"[ERROR] AI signing failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/api/verify-ai-text")
-async def verify_ai_text(signed_text: str = Form(...)):
-    """
-    Verify AI-generated text signature.
-    """
-    try:
-        # Extract signature block
-        pattern = r"---\n🤖 AI-GENERATED CONTENT VERIFICATION\n(.+?)\n---"
-        match = re.search(pattern, signed_text, re.DOTALL)
-        
-        if not match:
-            return {
-                "is_valid": False,
-                "is_ai_generated": False,
-                "message": "No AI signature found"
-            }
-        
-        # Parse metadata
-        sig_block = match.group(1)
-        metadata = {}
-        for line in sig_block.split('\n'):
-            if ':' in line:
-                key, value = line.split(':', 1)
-                metadata[key.strip()] = value.strip()
-        
-        # Extract original content
-        content = signed_text[:match.start()].strip()
-        
-        # Calculate current hash
-        current_hash = crypto.hash_file(content.encode('utf-8'))
-        original_hash_display = metadata.get('Content Hash', '')
-        
-        print(f"[AI-VERIFY] Model: {metadata.get('Model', 'Unknown')} | Hash match check")
-        
-        return {
-            "is_valid": True,
-            "is_ai_generated": True,
-            "model": metadata.get('Model', 'Unknown'),
-            "timestamp": metadata.get('Generated', 'Unknown'),
-            "is_modified": False,  # Would check against full hash in production
-            "original_hash": original_hash_display,
-            "current_hash": current_hash[:16] + "...",
-            "message": "✅ Valid AI-generated content signature"
-        }
-        
-    except Exception as e:
-        print(f"[ERROR] AI verification failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+# ============================================================================
+# AI TEXT DETECTION ROUTES
+# ============================================================================
 
-
-# Image Verification Routes
-@app.post("/api/sign-image")
-async def sign_image(
-    file: UploadFile = File(...),
-    position: str = Form("bottom-right")
-):
-    """
-    Add cryptographic QR code to image.
-    """
-    try:
-        # Read and validate image
-        image_data = await file.read()
-        
-        if len(image_data) == 0:
-            raise HTTPException(status_code=400, detail="Empty file")
-        
-        if len(image_data) > 10 * 1024 * 1024:  # 10MB limit
-            raise HTTPException(status_code=413, detail="Image too large (max 10MB)")
-        
-        # Open image
-        image = Image.open(BytesIO(image_data))
-        
-        # Calculate hash
-        image_hash = crypto.hash_file(image_data)
-        timestamp = datetime.now().isoformat() + 'Z'
-        
-        # Create signature data
-        signature_data = f"HASH:{image_hash}|TIME:{timestamp}|VERIFY:cryptoqr-eta.vercel.app"
-        
-        # Generate QR code
-        qr = qrcode.QRCode(version=1, box_size=10, border=2)
-        qr.add_data(signature_data)
-        qr.make(fit=True)
-        qr_image = qr.make_image(fill_color="black", back_color="white")
-        
-        # Resize QR to 15% of image width
-        qr_size = int(image.width * 0.15)
-        qr_image = qr_image.resize((qr_size, qr_size))
-        
-        # Position mapping
-        positions = {
-            "bottom-right": (image.width - qr_size - 20, image.height - qr_size - 20),
-            "bottom-left": (20, image.height - qr_size - 20),
-            "top-right": (image.width - qr_size - 20, 20),
-            "top-left": (20, 20)
-        }
-        
-        pos = positions.get(position, positions["bottom-right"])
-        
-        # Create copy and paste QR
-        image_copy = image.copy().convert('RGB')
-        image_copy.paste(qr_image, pos)
-        
-        # Save to bytes
-        output = BytesIO()
-        image_copy.save(output, format='PNG')
-        output.seek(0)
-        
-        # Convert to base64
-        image_b64 = base64.b64encode(output.getvalue()).decode()
-        
-        print(f"[IMAGE-SIGN] {image_hash[:8]}... | {image.width}x{image.height} | {position}")
-        
-        return {
-            "success": True,
-            "hash": image_hash,
-            "timestamp": timestamp,
-            "image_data": image_b64,
-            "format": "PNG",
-            "dimensions": {"width": image.width, "height": image.height}
-        }
-        
-    except Exception as e:
-        print(f"[ERROR] Image signing failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.post("/api/verify-image")
-async def verify_image(file: UploadFile = File(...)):
-    """
-    Verify image has valid CryptoQR signature.
-    """
-    try:
-        image_data = await file.read()
-        
-        if len(image_data) == 0:
-            raise HTTPException(status_code=400, detail="Empty file")
-        
-        # Calculate hash
-        image_hash = crypto.hash_file(image_data)
-        
-        # Open image to check for QR
-        image = Image.open(BytesIO(image_data))
-        
-        # Simple check: look for QR pattern in image
-        # (Full implementation would use pyzbar or similar to decode QR)
-        has_qr = True  # Placeholder - would actually decode QR
-        
-        print(f"[IMAGE-VERIFY] {image_hash[:8]}... | {image.width}x{image.height}")
-        
-        return {
-            "success": True,
-            "hash": image_hash,
-            "has_signature": has_qr,
-            "message": "✅ Image verified" if has_qr else "⚠️ No signature found",
-            "dimensions": {"width": image.width, "height": image.height}
-        }
-        
-    except Exception as e:
-        print(f"[ERROR] Image verification failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 def detect_ai_patterns(text: str) -> dict:
     """
     Analyze text for AI-generated patterns.
-    This is a basic implementation - real AI detection would use ML models.
+    Basic implementation - real AI detection would use ML models.
     """
     ai_indicators = 0
     total_checks = 0
@@ -798,22 +577,14 @@ def detect_ai_patterns(text: str) -> dict:
         ai_indicators += 1
         reasons.append(f"High formal phrase density ({formal_count} instances)")
     
-    # Check 2: Perfect grammar (no typos/mistakes)
-    total_checks += 1
-    has_typos = bool(re.search(r'\b\w+\s+\1\b', text))  # Repeated words
-    has_incomplete = '...' in text or text.count(',') > len(text.split()) / 15
-    if not has_typos and not has_incomplete and len(text) > 200:
-        ai_indicators += 0.5
-        reasons.append("Unusually perfect grammar for length")
-    
-    # Check 3: List structure (AI loves lists)
+    # Check 2: List structure (AI loves lists)
     total_checks += 1
     list_markers = text.count('\n-') + text.count('\n*') + text.count('\n1.')
     if list_markers >= 3:
         ai_indicators += 1
         reasons.append(f"Heavy use of lists ({list_markers} list items)")
     
-    # Check 4: Neutral/balanced tone (no strong opinions)
+    # Check 3: Neutral/balanced tone (no strong opinions)
     total_checks += 1
     emotional_words = ['hate', 'love', 'amazing', 'terrible', 'awful', 'fantastic']
     emotion_count = sum(1 for word in emotional_words if word in text.lower())
@@ -821,14 +592,14 @@ def detect_ai_patterns(text: str) -> dict:
         ai_indicators += 0.5
         reasons.append("Lack of emotional language")
     
-    # Check 5: Conclusion-heavy (AI always wraps up)
+    # Check 4: Conclusion-heavy (AI always wraps up)
     total_checks += 1
     conclusion_words = ['in conclusion', 'to sum up', 'in summary', 'overall', 'ultimately']
     if any(phrase in text.lower() for phrase in conclusion_words):
         ai_indicators += 1
         reasons.append("Contains explicit conclusion markers")
     
-    # Check 6: Length and structure
+    # Check 5: Length and structure
     total_checks += 1
     paragraphs = [p for p in text.split('\n\n') if len(p.strip()) > 50]
     if len(paragraphs) >= 3:
@@ -920,7 +691,7 @@ def analyze_image_for_ai(image_data: bytes) -> dict:
         indicators = []
         ai_score = 0
         
-        # Check 1: Unnatural smoothness (AI often over-smooths)
+        # Check 1: Unnatural smoothness
         img_array = list(image.getdata())
         if len(img_array) > 1000:
             sample = img_array[:1000]
@@ -930,7 +701,7 @@ def analyze_image_for_ai(image_data: bytes) -> dict:
                     ai_score += 25
                     indicators.append("Unusually smooth color transitions")
         
-        # Check 2: Perfect symmetry (AI struggles with asymmetry)
+        # Check 2: Perfect symmetry
         width, height = image.size
         if width == height or abs(width - height) < 50:
             ai_score += 15
@@ -942,7 +713,7 @@ def analyze_image_for_ai(image_data: bytes) -> dict:
             ai_score += 20
             indicators.append(f"Common AI generation size ({width}x{height})")
         
-        # Check 4: No EXIF data (AI images often lack metadata)
+        # Check 4: No EXIF data
         try:
             exif = image._getexif()
             if exif is None or len(exif) == 0:
@@ -959,7 +730,7 @@ def analyze_image_for_ai(image_data: bytes) -> dict:
         
         return {
             "is_likely_ai": ai_score > 50,
-            "confidence": min(ai_score, 85),  # Cap at 85% for basic detection
+            "confidence": min(ai_score, 85),
             "indicators": indicators if indicators else ["No strong AI indicators"],
             "image_info": {
                 "format": image.format,
@@ -1027,6 +798,8 @@ async def detect_ai_image(file: UploadFile = File(...)):
     except Exception as e:
         print(f"[ERROR] Image detection failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     import uvicorn
     
