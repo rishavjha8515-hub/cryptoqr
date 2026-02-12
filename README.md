@@ -1,112 +1,66 @@
+
 # 🔐 CryptoQR
 
 **Cryptographic proof-of-work verification for digital submissions**
 
 > Making honest effort verifiable in an AI-saturated world
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Built at AlamedaHacks](https://img.shields.io/badge/Built%20at-AlamedaHacks%202026-purple)](https://alamedahacks.com)
+![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
+![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)
+![Built at AlamedaHacks](https://img.shields.io/badge/Built%20at-AlamedaHacks%202026-purple)
 
 ---
 
 ## 🌐 Live Demo
 
-**🚀 Try it now:**
-
 - **Frontend:** https://cryptoqr-pi.vercel.app/
 - **Backend API:** https://cryptoqr-api-awkm.onrender.com
 
-*Note: Backend may take 30 seconds to wake up on first request (free tier)*
+> Note: Backend may take ~30 seconds to wake up on first request (free tier deployment).
 
 ---
 
-## 📋 Table of Contents
+## 🎯 Problem Statement
 
-- [The Problem](#-the-problem)
-- [The Solution](#-the-solution)
-- [Quick Start](#-quick-start)
-- [Technical Architecture](#-technical-architecture)
-- [Security Features](#-security-features)
-- [Use Cases](#-use-cases)
-- [Technology Stack](#-technology-stack)
-- [Project Status](#-project-status)
-- [Built By](#-built-by)
-- [Contributing](#-contributing)
-- [Contact](#-contact)
-- [License](#-license)
-- [Acknowledgments](#-acknowledgments)
+With the rapid rise of AI-generated content, judges and reviewers in science fairs, hackathons, and competitions face a growing challenge:
+
+**How can authentic effort and original work be verified reliably?**
+
+Traditional review systems rely heavily on trust, manual inspection, or plagiarism checks, which are increasingly insufficient in an AI-assisted environment.
 
 ---
 
-## 🎯 The Problem
+## 💡 Solution Overview
 
-In 2025, AI can generate polished projects in minutes. Science fairs, hackathons, and research competitions face an authenticity crisis:
+CryptoQR provides a **cryptographic verification layer** for digital submissions.
 
-**How do you prove when work was actually created?**
+Each submitted file is bound to a **tamper-evident QR code** that proves:
 
-Traditional verification relies on trust. CryptoQR relies on cryptography.
+- What file was submitted
+- When it was submitted
+- That the file has not been modified
+- That it is valid only for a specific competition or context
 
----
-
-## 💡 The Solution
-
-CryptoQR generates **unforgeable, tamper-evident QR codes** that cryptographically bind documents to specific timestamps.
-
-When students submit work, they receive a QR code containing:
-
-- 🔒 **SHA-256 content hash** (proves document integrity)
-- ✍️ **Ed25519 signature** (proves authenticity)
-- ⏰ **ISO 8601 timestamp** (proves when)
-- 🎯 **Competition binding** (prevents reuse)
-
-Judges scan the QR code to instantly verify: Is this the original work? Was it submitted on time? Has it been modified?
+Verification is cryptographic, not opinion-based.
 
 ---
 
-## ⚡ Key Features
+## 🔐 Core Cryptographic Design
 
-### 🔐 Cryptographic Security
-- **Ed25519 Digital Signatures** - Military-grade authentication
-- **SHA-256 Hashing** - Tamper detection at bit-level precision
-- **Zero-Trust Architecture** - Verification works independently
-- **Replay Attack Prevention** - QR codes can't be reused
+Each QR code encodes:
 
-### 🎨 User Experience
-- **One-Click Submission** - Upload file, get QR code instantly
-- **Email Delivery** - Automatic certificate with QR code attached
-- **Beautiful Certificates** - Print-ready submission proof
-- **Mobile-Friendly** - Works on any device
+- **SHA-256 content hash** — guarantees file integrity
+- **Ed25519 digital signature** — guarantees authenticity
+- **ISO 8601 timestamp** — proves submission time
+- **Competition identifier** — prevents reuse across events
 
-### 🚀 Performance
-- **Serverless Deployment** - Infinite scalability
-- **$0 Operating Cost** - No server maintenance
-- **Instant Verification** - Results in milliseconds
-- **Offline Capable** - QR codes work without internet
-
-### 🛡️ Enterprise Features
-- **Duplicate Detection** - Same file can't be submitted twice
-- **Competition Isolation** - Prevents submission reuse
-- **Audit Trail** - Complete verification history
-- **JSON Export** - Full cryptographic metadata
+Any modification to the file invalidates verification.
 
 ---
 
-## 🚀 Quick Start
+## ⚙️ How It Works
 
-### For Students (Submitters)
-
-1. Visit the submission portal
-2. Upload your project file
-3. Enter competition details
-4. Download your cryptographic QR code
-5. Attach it to your submission
-
-### For Judges (Verifiers)
-
-1. Visit the verification portal
-2. Upload the submission file + QR code
-3. Get instant verification: ✅ Valid or ❌ Invalid
+### Submission Flow
 
 ---
 
@@ -127,45 +81,6 @@ Judge Upload → Extract Hash → Verify Signature → Compare Timestamp
       ↓             ↓              ↓                    ↓
   Student File  Recalculate   Check Authenticity   Validate Deadline
 ```
-
-### Cryptographic Flow
-
-1. **Hash Generation**: File content → SHA-256 → 64-character hex string
-2. **Signature Creation**: Hash + Timestamp + Competition ID → Ed25519 private key → Digital signature
-3. **QR Encoding**: All metadata → JSON → QR code image
-4. **Verification**: Uploaded file → Recalculate hash → Verify signature with public key → Success/Failure
-
----
-
-## 🏗️ Technical Architecture
-
-**Backend:** Python 3.11 + FastAPI  
-**Cryptography:** Ed25519 (digital signatures) + SHA-256 (hashing)  
-**Frontend:** Modern vanilla JavaScript + CSS3  
-**Deployment:** Serverless architecture (Render + Vercel)  
-**Cost:** $0 to run at scale
-
----
-
-## 🔒 Security Features
-
-- ✅ **Tamper Detection**: Any file modification breaks verification
-- ✅ **Timestamp Integrity**: Backdating is cryptographically impossible
-- ✅ **Replay Prevention**: QR codes can't be reused across competitions
-- ✅ **Duplicate Detection**: Same file can't be submitted twice
-- ✅ **Zero Trust Architecture**: Verification works independently
-
----
-
-## 📈 Use Cases
-
-- 🏆 Hackathons & coding competitions
-- 🔬 Science fairs & research submissions
-- 🎓 Scholarship applications
-- 📚 Academic portfolios
-- 💼 Freelance work verification
-- 📝 Content authenticity proof
-
 ---
 
 ## 🛠️ Technology Stack
@@ -180,59 +95,90 @@ Judge Upload → Extract Hash → Verify Signature → Compare Timestamp
 
 ---
 
-## 👨‍💻 Built By
+## 🚀 Key Features
 
-**Rishav Anand Kumar Jha** | 16-year-old computational physics researcher
+### Cryptographic Integrity
+- Ed25519 digital signatures
+- SHA-256 hashing
+- Tamper detection at bit-level precision
+- Replay and reuse prevention
 
-- 📄 Published: [Quantum Decoherence Visualization](https://zenodo.org/records/17781173) (400+ views)
-- 🏆 IRIS National Fair 2025 Finalist (Physics & Astronomy)
-- 🔬 Research: Information theory, cryptographic verification systems
+### Reviewer & Judge Utility
+- Fast verification (milliseconds)
+- Clear pass/fail output
+- Context-bound submissions
+- Audit-friendly metadata
 
-This project applies research-grade cryptography to solve real-world verification challenges in student competitions.
-
----
-
-## 🤝 Contributing
-
-This project is currently in active development for AlamedaHacks 2026.
-
-Contributions, issues, and feature requests are welcome after initial release.
-
-## 📧 Contact
-
-- **GitHub:** [@rishavjha8515-hub](https://github.com/rishavjha8515-hub)
-- **Email:** rishavjha8515@gmail.com
-- **Project:** [github.com/rishavjha8515-hub/cryptoqr](https://github.com/rishavjha8515-hub/cryptoqr)
+### System Properties
+- Zero-trust verification
+- Offline-verifiable QR codes
+- Serverless deployment
+- No user accounts required
 
 ---
 
-## 🙏 Acknowledgments
+## 🧪 Design Philosophy
 
-Built during **AlamedaHacks 2026** - a global virtual hackathon for high school and college students.
+- Cryptography over trust
+- Verification over claims
+- Transparency over black-box scoring
+- Advisory signals, not absolute judgments
 
-Special thanks to:
-- 🎉 **AlamedaHacks organizers** for hosting this incredible event
-- 👥 **Mentors and judges** for guidance and feedback
-- 🌟 **Open-source community** for cryptographic libraries
-- 💡 **Students worldwide** facing authenticity challenges in the AI era
-
----
-
-## 📊 Project Status
-
-**Version:** 1.0.0-alpha  
-**Development:** Active (AlamedaHacks 2026, Jan 1-11)  
-**Stage:** Production-ready MVP  
-**License:** MIT
+CryptoQR is designed to support human review, not replace it.
 
 ---
 
-<div align="center">
+## 🏆 Judges & Evaluation Context
 
-**CryptoQR** • *Cryptographic proof for the age of AI*
+CryptoQR was built and deployed during **AlamedaHacks 2026**, a global hackathon evaluated by industry professionals and engineers.
 
-[🚀 Try Demo](https://cryptoqr-pi.vercel.app/) • [📖 Read Docs](#-quick-start) • [🐛 Report Issue](https://github.com/rishavjha8515-hub/cryptoqr/issues) • [⭐ Star Project](https://github.com/rishavjha8515-hub/cryptoqr)
+The project was recognized for:
+- Practical application of cryptography
+- Clear threat model and assumptions
+- Real-world relevance to competitions and academic review systems
 
-Made with ❤️ and cryptography by Rishav Jha
+CryptoQR placed **Top 4 overall** at AlamedaHacks 2026.
 
-</div>
+---
+
+## 📌 Project Status
+
+- **Version:** 1.0.0-alpha
+- **Stage:** Production-ready MVP
+- **Development:** Active
+- **License:** MIT
+
+---
+
+## 🔮 Planned Extensions
+
+- AI-assisted content detection (advisory signals only)
+- Deepfake and media integrity checks
+- Cross-competition reuse detection
+- Reviewer analytics dashboard
+
+---
+
+## 👨‍💻 Author
+
+**Rishav Anand Kumar Jha**
+
+Student researcher working on:
+- Cryptographic verification systems
+- Information integrity
+- Quantum information & decoherence
+
+Achievements:
+- Top 4 — AlamedaHacks 2026
+- IRIS National Science Fair Finalist (Physics & Astronomy)
+- Published research on quantum decoherence visualization
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+**CryptoQR** — Cryptographic proof for the age of AI

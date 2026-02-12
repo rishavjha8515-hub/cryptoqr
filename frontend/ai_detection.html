@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+        <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Content Detection - CryptoQR</title>
+    <title>AI Text Detection - CryptoQR</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -16,7 +16,7 @@
         
         .container {
             max-width: 900px;
-             margin: 2rem auto;
+            margin: 6rem auto 2rem;
             background: white;
             border-radius: 20px;
             padding: 3rem;
@@ -35,36 +35,13 @@
             font-size: 1.1rem;
         }
         
-        .tabs {
-            display: flex;
-            gap: 1rem;
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 12px;
+            padding: 1rem;
             margin-bottom: 2rem;
-            border-bottom: 2px solid #e2e8f0;
-        }
-        
-        .tab {
-            padding: 1rem 2rem;
-            border: none;
-            background: none;
-            color: #718096;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s;
-        }
-        
-        .tab.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
+            font-size: 0.9rem;
         }
         
         textarea {
@@ -74,8 +51,9 @@
             border: 2px solid #e2e8f0;
             border-radius: 12px;
             font-size: 1rem;
-            font-family: 'Courier New', monospace;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             resize: vertical;
+            line-height: 1.6;
         }
         
         textarea:focus {
@@ -83,23 +61,11 @@
             border-color: #667eea;
         }
         
-        .input-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        label {
-            display: block;
-            color: #2d3748;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-        
-        input[type="text"] {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 1rem;
+        .char-count {
+            text-align: right;
+            color: #718096;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
         }
         
         .btn {
@@ -116,7 +82,7 @@
             color: white;
         }
         
-        .btn:hover {
+        .btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
         }
@@ -133,225 +99,298 @@
             display: none;
         }
         
-        .result-box.success {
+        .result-box.ai {
+            background: #fff5f5;
+            border: 3px solid #f56565;
+        }
+        
+        .result-box.human {
             background: #f0fdf4;
-            border: 2px solid #22c55e;
+            border: 3px solid #48bb78;
         }
         
-        .result-box.warning {
+        .result-box.uncertain {
             background: #fef3c7;
-            border: 2px solid #f59e0b;
+            border: 3px solid #f59e0b;
         }
         
-        .result-box.error {
-            background: #fef2f2;
-            border: 2px solid #ef4444;
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
         }
         
         .result-icon {
             font-size: 3rem;
-            margin-bottom: 1rem;
         }
         
         .result-title {
             font-size: 1.5rem;
             font-weight: 700;
-            margin-bottom: 0.5rem;
         }
         
-        .detail-row {
+        .confidence-bar {
+            width: 100%;
+            height: 30px;
+            background: #e2e8f0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            transition: width 0.5s ease;
             display: flex;
-            justify-content: space-between;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
         }
         
-        code {
-            background: #f3f4f6;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
+        .confidence-fill.ai {
+            background: linear-gradient(90deg, #f56565, #e53e3e);
+        }
+        
+        .confidence-fill.human {
+            background: linear-gradient(90deg, #48bb78, #38a169);
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .metric-label {
+            font-size: 0.85rem;
+            color: #718096;
+            margin-bottom: 0.25rem;
+        }
+        
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+        
+        .indicators-list {
+            margin-top: 1.5rem;
+        }
+        
+        .indicators-list h4 {
+            margin-bottom: 1rem;
+            color: #2d3748;
+        }
+        
+        .indicator-item {
+            padding: 0.75rem;
+            background: rgba(0,0,0,0.03);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 2rem 1.5rem;
+                margin-top: 5rem;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation Bar -->
     <div id="navbar-container"></div>
+    
     <div class="container">
-        <h1>🤖 AI Content Detection</h1>
-        <p class="subtitle">Sign and verify AI-generated content with cryptographic proof</p>
+        <h1>🤖 AI Text Detection</h1>
+        <p class="subtitle">Analyze text to detect if it was written by AI</p>
         
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('sign')">Sign AI Content</button>
-            <button class="tab" onclick="switchTab('verify')">Verify Content</button>
+        <div class="warning-box">
+            ⚠️ <strong>Disclaimer:</strong> This is a basic pattern-based detector. It analyzes writing style, structure, and common AI patterns. For high-stakes decisions, use specialized AI detection services like GPTZero or Originality.AI.
         </div>
         
-        <!-- SIGN TAB -->
-        <div id="sign-tab" class="tab-content active">
-            <div class="input-group">
-                <label for="ai-content">AI-Generated Content</label>
-                <textarea id="ai-content" placeholder="Paste AI-generated text here..."></textarea>
-            </div>
-            
-            <div class="input-group">
-                <label for="model-name">AI Model Used</label>
-                <input type="text" id="model-name" value="claude-sonnet-4.5-20250514" />
-            </div>
-            
-            <button class="btn" onclick="signContent()">
-                🔐 Generate Cryptographic Signature
-            </button>
-            
-            <div id="sign-result" class="result-box"></div>
-        </div>
+        <textarea 
+            id="textInput" 
+            placeholder="Paste text here to analyze...
+
+Examples of what to test:
+• Student essays
+• Article content
+• Email messages
+• Social media posts
+• Academic papers
+
+Minimum 50 characters required for analysis."
+            oninput="updateCharCount()"
+        ></textarea>
         
-        <!-- VERIFY TAB -->
-        <div id="verify-tab" class="tab-content">
-            <div class="input-group">
-                <label for="verify-content">Content to Verify</label>
-                <textarea id="verify-content" placeholder="Paste signed content here (including signature block)..."></textarea>
+        <div class="char-count" id="charCount">0 characters, 0 words</div>
+        
+        <button class="btn" onclick="analyzeText()" id="analyzeBtn">
+            🔍 Analyze Text
+        </button>
+        
+        <div class="result-box" id="resultBox">
+            <div class="result-header">
+                <div class="result-icon" id="resultIcon"></div>
+                <div>
+                    <div class="result-title" id="resultTitle"></div>
+                    <div id="resultMessage" style="color: #718096; margin-top: 0.25rem;"></div>
+                </div>
             </div>
             
-            <button class="btn" onclick="verifyContent()">
-                ✅ Verify Authenticity
-            </button>
+            <div class="confidence-bar">
+                <div class="confidence-fill" id="confidenceFill"></div>
+            </div>
             
-            <div id="verify-result" class="result-box"></div>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Word Count</div>
+                    <div class="metric-value" id="wordCount">-</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Sentence Count</div>
+                    <div class="metric-value" id="sentenceCount">-</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Avg Sentence Length</div>
+                    <div class="metric-value" id="avgSentenceLength">-</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">AI Indicators Found</div>
+                    <div class="metric-value" id="indicatorsFound">-</div>
+                </div>
+            </div>
+            
+            <div class="indicators-list">
+                <h4>📋 Analysis Details:</h4>
+                <div id="indicatorsList"></div>
+            </div>
         </div>
     </div>
     
     <script>
         const API_BASE = 'https://cryptoqr-api-awkm.onrender.com';
         
-        function switchTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.getElementById(tab + '-tab').classList.add('active');
+        function updateCharCount() {
+            const text = document.getElementById('textInput').value;
+            const charCount = text.length;
+            const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
+            document.getElementById('charCount').textContent = 
+                `${charCount} characters, ${wordCount} words`;
         }
         
-        async function signContent() {
-            const content = document.getElementById('ai-content').value;
-            const modelName = document.getElementById('model-name').value;
-            const resultBox = document.getElementById('sign-result');
+        async function analyzeText() {
+            const text = document.getElementById('textInput').value.trim();
+            const resultBox = document.getElementById('resultBox');
+            const analyzeBtn = document.getElementById('analyzeBtn');
             
-            if (!content.trim()) {
-                alert('Please enter content to sign');
+            if (!text) {
+                alert('Please enter text to analyze');
                 return;
             }
             
+            if (text.length < 50) {
+                alert('Please enter at least 50 characters for meaningful analysis');
+                return;
+            }
+            
+            analyzeBtn.disabled = true;
+            analyzeBtn.textContent = '🔄 Analyzing...';
+            resultBox.style.display = 'none';
+            
             try {
                 const formData = new FormData();
-                formData.append('content', content);
-                formData.append('model_name', modelName);
+                formData.append('text', text);
                 
-                const response = await fetch(`${API_BASE}/api/sign-ai-text`, {
+                const response = await fetch(`${API_BASE}/api/detect-ai-text`, {
                     method: 'POST',
                     body: formData
                 });
                 
                 const data = await response.json();
                 
-                resultBox.className = 'result-box success';
-                resultBox.style.display = 'block';
-                resultBox.innerHTML = `
-                    <div class="result-icon">✅</div>
-                    <div class="result-title">Content Signed Successfully</div>
-                    <div class="result-details">
-                        <div class="detail-row">
-                            <span><strong>Model:</strong></span>
-                            <span>${modelName}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span><strong>Timestamp:</strong></span>
-                            <span>${data.timestamp}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span><strong>Content Hash:</strong></span>
-                            <span><code>${data.hash.substring(0, 16)}...</code></span>
-                        </div>
-                        <p style="margin-top: 1rem;">
-                            <strong>Signed content (copy this):</strong>
-                        </p>
-                        <textarea readonly style="margin-top: 0.5rem; min-height: 200px;">${data.signed_text}</textarea>
-                    </div>
-                `;
-                
-            } catch (error) {
-                resultBox.className = 'result-box error';
-                resultBox.style.display = 'block';
-                resultBox.innerHTML = `
-                    <div class="result-icon">❌</div>
-                    <div class="result-title">Signing Failed</div>
-                    <div>${error.message}</div>
-                `;
-            }
-        }
-        
-        async function verifyContent() {
-            const content = document.getElementById('verify-content').value;
-            const resultBox = document.getElementById('verify-result');
-            
-            if (!content.trim()) {
-                alert('Please enter content to verify');
-                return;
-            }
-            
-            try {
-                const formData = new FormData();
-                formData.append('signed_text', content);
-                
-                const response = await fetch(`${API_BASE}/api/verify-ai-text`, {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                
-                if (data.is_ai_generated) {
-                    resultBox.className = 'result-box success';
-                    resultBox.innerHTML = `
-                        <div class="result-icon">🤖</div>
-                        <div class="result-title">AI-Generated Content Verified</div>
-                        <div class="result-details">
-                            <div class="detail-row">
-                                <span><strong>Status:</strong></span>
-                                <span>${data.message}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span><strong>Model:</strong></span>
-                                <span>${data.model}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span><strong>Generated:</strong></span>
-                                <span>${data.timestamp}</span>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    resultBox.className = 'result-box warning';
-                    resultBox.innerHTML = `
-                        <div class="result-icon">⚠️</div>
-                        <div class="result-title">No AI Signature Found</div>
-                        <div>This content does not contain a CryptoQR AI verification signature.</div>
-                    `;
+                if (!data.success) {
+                    throw new Error(data.detail || 'Analysis failed');
                 }
                 
-                resultBox.style.display = 'block';
+                displayResults(data);
                 
             } catch (error) {
-                resultBox.className = 'result-box error';
-                resultBox.style.display = 'block';
-                resultBox.innerHTML = `
-                    <div class="result-icon">❌</div>
-                    <div class="result-title">Verification Failed</div>
-                    <div>${error.message}</div>
-                `;
+                alert('Analysis failed: ' + error.message);
+            } finally {
+                analyzeBtn.disabled = false;
+                analyzeBtn.textContent = '🔍 Analyze Text';
             }
         }
+        
+        function displayResults(data) {
+            const resultBox = document.getElementById('resultBox');
+            const confidence = data.confidence;
+            const isAI = data.is_likely_ai;
+            
+            // Determine result class
+            let resultClass = 'uncertain';
+            if (confidence > 70) {
+                resultClass = isAI ? 'ai' : 'human';
+            }
+            
+            resultBox.className = `result-box ${resultClass}`;
+            
+            // Set icon and title
+            if (isAI) {
+                document.getElementById('resultIcon').textContent = '🤖';
+                document.getElementById('resultTitle').textContent = 'Likely AI-Generated';
+            } else {
+                document.getElementById('resultIcon').textContent = '✍️';
+                document.getElementById('resultTitle').textContent = 'Likely Human-Written';
+            }
+            
+            document.getElementById('resultMessage').textContent = data.message;
+            
+            // Confidence bar
+            const confidenceFill = document.getElementById('confidenceFill');
+            confidenceFill.style.width = confidence + '%';
+            confidenceFill.textContent = confidence + '% confidence';
+            confidenceFill.className = `confidence-fill ${isAI ? 'ai' : 'human'}`;
+            
+            // Metrics
+            document.getElementById('wordCount').textContent = data.metrics.word_count;
+            document.getElementById('sentenceCount').textContent = data.metrics.sentence_count;
+            document.getElementById('avgSentenceLength').textContent = data.metrics.avg_sentence_length + ' words';
+            document.getElementById('indicatorsFound').textContent = 
+                `${data.analysis.indicators_found}/${data.analysis.total_checks}`;
+            
+            // Indicators list
+            const indicatorsList = document.getElementById('indicatorsList');
+            indicatorsList.innerHTML = data.analysis.reasons.map(reason => `
+                <div class="indicator-item">
+                    <span>${isAI ? '⚠️' : '✓'}</span>
+                    <span>${reason}</span>
+                </div>
+            `).join('');
+            
+            resultBox.style.display = 'block';
+            resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
     </script>
-    <!-- Load Navigation -->
+    
     <script>
         fetch('navbar.html')
             .then(response => response.text())
@@ -360,6 +399,5 @@
             })
             .catch(error => console.error('Navigation load failed:', error));
     </script>
-</body>
 </body>
 </html>
