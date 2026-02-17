@@ -29,25 +29,43 @@
             background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
+            padding: 0;
+        }
+
+        /* Navbar styles */
+        #navbar-container {
+            width: 100%;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Main content wrapper */
+        .main-content {
+            flex: 1;
+            display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0px;
-            padding:80px 20px 20px 20px
+            padding: 40px 20px;
         }
 
         .container {
             background: var(--card-bg);
             border-radius: 24px;
-            padding: 48px;
+            padding: 40px 32px;
             max-width: 680px;
             width: 100%;
             box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
-             margin: 2rem auto;
+            margin: 0 auto;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 32px;
         }
         .logo {
             font-size: 48px;
@@ -231,6 +249,31 @@
             font-weight: 600;
             margin-top: 8px;
             word-break: break-all;
+        }
+
+        /* Mobile responsive styles */
+        @media (max-width: 640px) {
+            .main-content {
+                padding: 20px 16px;
+            }
+            
+            .container {
+                padding: 32px 24px;
+                border-radius: 20px;
+            }
+            
+            .logo {
+                font-size: 40px;
+                margin-bottom: 12px;
+            }
+            
+            h1 {
+                font-size: 28px;
+            }
+            
+            .subtitle {
+                font-size: 15px;
+            }
         }
 
         button {
@@ -578,12 +621,15 @@
 <body>
     <!-- Navigation Bar -->
     <div id="navbar-container"></div>
-    <!-- THEME TOGGLE BUTTON -->
-    <div class="theme-toggle" id="themeToggle">
-        <span class="theme-toggle-icon" id="themeIcon">🌙</span>
-    </div>
+    
+    <!-- Main Content Wrapper -->
+    <div class="main-content">
+        <!-- THEME TOGGLE BUTTON -->
+        <div class="theme-toggle" id="themeToggle">
+            <span class="theme-toggle-icon" id="themeIcon">🌙</span>
+        </div>
 
-    <div class="container">
+        <div class="container">
         <div class="header">
             <div class="logo">🔐</div>
             <h1>CryptoQR Submission</h1>
@@ -705,7 +751,7 @@
             <a href="verify.html">🔍 Verify</a>
             <a href="dashboard.html">📊 Dashboard</a>
         </div>
-    </div>
+    </div> <!-- End main-content -->
 
     <!-- DEBUG PANEL -->
     <div class="debug-panel" id="debugPanel">
