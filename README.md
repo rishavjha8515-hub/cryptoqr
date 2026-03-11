@@ -1,184 +1,81 @@
+# CryptoQR
 
-# 🔐 CryptoQR
-
-**Cryptographic proof-of-work verification for digital submissions**
-
-> Making honest effort verifiable in an AI-saturated world
-
-![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
-![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)
-![Built at AlamedaHacks](https://img.shields.io/badge/Built%20at-AlamedaHacks%202026-purple)
+**Cryptographic document verification — because honest work deserves proof.**
 
 ---
 
-## 🌐 Live Demo
+## Where this came from
 
-- **Frontend:** https://cryptoqr-pi.vercel.app/
-- **Backend API:** https://cryptoqr-api-awkm.onrender.com
+I was looking at a QR code on a perfume bottle and started wondering — how many unique QR codes can actually exist? I took it to my faculty as a permutations and combinations problem. That conversation led me down a rabbit hole: binary states, exponential possibility spaces, and eventually to Ramanujan's work and how it connects to modern encryption.
 
-> Note: Backend may take ~30 seconds to wake up on first request (free tier deployment).
+That's when it clicked. A QR code isn't just a link. It can be a proof.
 
----
+In a world where AI can generate a polished research paper or a convincing deepfake in minutes, how does a student prove their work is actually theirs? How does a judge know a submission wasn't backdated? I wanted to build something that makes honest effort verifiable — not through trust, but through math.
 
-## 🎯 Problem Statement
-
-With the rapid rise of AI-generated content, judges and reviewers in science fairs, hackathons, and competitions face a growing challenge:
-
-**How can authentic effort and original work be verified reliably?**
-
-Traditional review systems rely heavily on trust, manual inspection, or plagiarism checks, which are increasingly insufficient in an AI-assisted environment.
+CryptoQR is that tool. It's not finished. But the core idea works.
 
 ---
 
-## 💡 Solution Overview
+## What it does
 
-CryptoQR provides a **cryptographic verification layer** for digital submissions.
+You upload a document. CryptoQR generates a QR code that cryptographically binds that file to a specific timestamp and competition. Any judge can scan it to verify:
 
-Each submitted file is bound to a **tamper-evident QR code** that proves:
+- Is this the original file? (SHA-256 hash — any single bit change breaks it)
+- Was it actually signed by the submitter? (Ed25519 digital signature)
+- When was it submitted? (ISO 8601 timestamp)
+- Was it submitted for this specific competition? (competition binding prevents reuse)
 
-- What file was submitted
-- When it was submitted
-- That the file has not been modified
-- That it is valid only for a specific competition or context
-
-Verification is cryptographic, not opinion-based.
+The math behind it: SHA-256 produces a 256-bit fingerprint — that's 2^256 possible values, roughly the number of atoms in the observable universe. Finding two files with the same hash by brute force is computationally impossible. Ed25519 gives ~128 bits of security (2^128 operations to break) with smaller, faster keys than RSA.
 
 ---
 
-## 🔐 Core Cryptographic Design
+## What's working
 
-Each QR code encodes:
+The full cryptographic pipeline works end-to-end:
 
-- **SHA-256 content hash** — guarantees file integrity
-- **Ed25519 digital signature** — guarantees authenticity
-- **ISO 8601 timestamp** — proves submission time
-- **Competition identifier** — prevents reuse across events
+- Document upload → SHA-256 hash → Ed25519 signature → QR code generation
+- Judge verification: upload file + QR → instant valid/invalid result
+- Deployed: frontend on Vercel, backend API on Render
 
-Any modification to the file invalidates verification.
+Try it: [cryptoqr-pi.vercel.app](https://cryptoqr-pi.vercel.app)
 
----
-
-## ⚙️ How It Works
-
-### Submission Flow
+*Note: Backend is on Render free tier — first request may take ~30 seconds to wake up.*
 
 ---
 
-## 🔬 How It Works
+## What's not finished
 
-### Submission Process
+**Email notifications:** Integrated Gmail first (didn't send), then switched to SendGrid. Emails send but land in spam due to shared IP reputation on free tier — this requires a dedicated IP or custom domain DNS configuration to fully resolve. I understand why it's broken; I just don't have the infrastructure budget to fix it yet.
 
-```
-Student File → SHA-256 Hash → Ed25519 Signature → QR Code
-     ↓              ↓               ↓                 ↓
-   Upload      Fingerprint     Sign + Timestamp   Visual Proof
-```
-
-### Verification Process
-
-```
-Judge Upload → Extract Hash → Verify Signature → Compare Timestamp
-      ↓             ↓              ↓                    ↓
-  Student File  Recalculate   Check Authenticity   Validate Deadline
-```
----
-
-## 🛠️ Technology Stack
-
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| Backend API | FastAPI | REST endpoints |
-| Cryptography | `cryptography` lib | Ed25519 + SHA-256 |
-| QR Generation | `qrcode` + `Pillow` | Image creation |
-| Frontend | HTML5/CSS3/JS | User interface |
-| Deployment | Render + Vercel | Production hosting |
+**AI detection layer:** The original goal was to add deepfake and AI-generated content detection on top of the cryptographic verification. That system is not built yet. CryptoQR currently proves *when* and *by whom* — not *how* content was created. That's the next problem.
 
 ---
 
-## 🚀 Key Features
+## Stack
 
-### Cryptographic Integrity
-- Ed25519 digital signatures
-- SHA-256 hashing
-- Tamper detection at bit-level precision
-- Replay and reuse prevention
-
-### Reviewer & Judge Utility
-- Fast verification (milliseconds)
-- Clear pass/fail output
-- Context-bound submissions
-- Audit-friendly metadata
-
-### System Properties
-- Zero-trust verification
-- Offline-verifiable QR codes
-- Serverless deployment
-- No user accounts required
+| Component | Technology |
+|-----------|------------|
+| Backend | Python 3.11 + FastAPI |
+| Cryptography | Ed25519 (signatures) + SHA-256 (hashing) |
+| QR Generation | qrcode + Pillow |
+| Frontend | HTML5 / CSS3 / JavaScript |
+| Deployment | Render + Vercel |
 
 ---
 
-## 🧪 Design Philosophy
+## Built at
 
-- Cryptography over trust
-- Verification over claims
-- Transparency over black-box scoring
-- Advisory signals, not absolute judgments
-
-CryptoQR is designed to support human review, not replace it.
+AlamedaHacks 2026 — a 10-day global hackathon with 938 participants and 34 industry judges from Google, Meta, Amazon, and Anthropic. Won Judge's Pick.
 
 ---
 
-## 🏆 Judges & Evaluation Context
+## About
 
-CryptoQR was built and deployed during **AlamedaHacks 2026**, a global hackathon evaluated by industry professionals and engineers.
+Built by **Rishav Anand Kumar Jha** — 16-year-old independent researcher from Mumbai, working on quantum decoherence visualization and apparently also cryptographic verification systems that started from a perfume bottle.
 
-The project was recognized for:
-- Practical application of cryptography
-- Clear threat model and assumptions
-- Real-world relevance to competitions and academic review systems
-
-CryptoQR placed **Top 4 overall** at AlamedaHacks 2026.
+- Research: [zenodo.org/records/17781173](https://zenodo.org/records/17781173)
+- Email: rishavjha8515@gmail.com
 
 ---
 
-## 📌 Project Status
-
-- **Version:** 1.0.0-alpha
-- **Stage:** Production-ready MVP
-- **Development:** Active
-- **License:** MIT
-
----
-
-## 🔮 Planned Extensions
-
-- AI-assisted content detection (advisory signals only)
-- Deepfake and media integrity checks
-- Cross-competition reuse detection
-- Reviewer analytics dashboard
-
----
-
-## 👨‍💻 Author
-
-**Rishav Anand Kumar Jha**
-
-Student researcher working on:
-- Cryptographic verification systems
-- Information integrity
-- Quantum information & decoherence
-
-Achievements:
-- Top 4 — AlamedaHacks 2026
-- IRIS National Science Fair Finalist (Physics & Astronomy)
-- Published research on quantum decoherence visualization
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
----
-
-**CryptoQR** — Cryptographic proof for the age of AI
+*MIT License — see LICENSE file.*
